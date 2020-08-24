@@ -31,7 +31,7 @@ def plot(loss_G, loss_D, loss_E, loss_CD, epochs, dirname):
 
 # 環境をアウトプットしてテキストファイルで保存
 def output_env(filepath, batch_size, nz, para_G, para_D, para_E, para_CD, gen_model, dis_model, enc_model, cdis_model):
-    text_set = '#####Setting#####\nMinibatch size: {}\nDim. of random vectors: {}\n\n'.format(batch_size, nz)
+    text_set = '##### Setting #####\nMinibatch size: {}\nDim. of random vectors: {}\n\n'.format(batch_size, nz)
     text_opt_G = '##### Optimizer Parameter #####\nGenerator ==> lr: {}, betas: {}, weight_decay: {}\n'.format(para_G['lr'], para_G['betas'], para_G['weight_decay'])
     text_opt_D = 'Discriminator ==> lr: {}, betas: {}, weight_decay: {}\n'.format(para_D['lr'], para_D['betas'], para_D['weight_decay'])
     text_opt_E = 'Encoder ==> lr: {}, betas: {}, weight_decay: {}\n'.format(para_E['lr'], para_E['betas'], para_E['weight_decay'])
