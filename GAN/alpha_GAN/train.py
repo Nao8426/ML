@@ -171,7 +171,7 @@ def train(savedir, _list, root, epochs, batch_size, nz):
         result['log_loss_D'].append(statistics.mean(log_loss_D))
         result['log_loss_E'].append(statistics.mean(log_loss_E))
         result['log_loss_CD'].append(statistics.mean(log_loss_CD))
-        print('loss_G =', result['log_loss_G'][-1], ', loss_D =', result['log_loss_D'][-1], ', loss_E =', result['log_loss_E'][-1], ', loss_CD =', result['log_loss_CD'][-1])
+        print('loss_G = {} , loss_D = {} , loss_E = {} , loss_CD = {}'.format(result['log_loss_G'][-1], result['log_loss_D'][-1], result['log_loss_E'][-1], result['log_loss_CD'][-1]))
         
         # 定めた保存周期ごとにモデル，出力画像，ログを保存する
         if (epoch+1)%10 == 0:

@@ -64,8 +64,7 @@ def train(savedir, train_list, test_list, root, epochs, batch_size):
     para = torch.optim.Adam(model.parameters(), lr=lr, betas=betas, weight_decay=weight_decay)
 
     # ロスの推移を保存するためのリストを確保
-    result = {}
-    result['log_loss'] = []
+    result = []
 
     # トレーニングデータとテストデータを読み込み（ローダーを作成）
     df_train = pd.read_csv(train_list)
@@ -108,8 +107,8 @@ def train(savedir, train_list, test_list, root, epochs, batch_size):
             para.step()
 
         # ロスのログを保存し，各エポック終わりにロスを表示．
-        result['log_loss'].append(statistics.mean(log_loss))
-        print('loss =', result['log_loss'][-1])
+        result.append(statistics.mean(log_loss))
+        print('loss = {}'.format(result[-1]))
         
         # 定めた保存周期ごとにモデル，ロス，ログを保存．
         if (epoch+1) % rotate == 0:

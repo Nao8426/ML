@@ -132,7 +132,7 @@ def train(savedir, _list, root, epochs, batch_size, nz):
 
         result['log_loss_G'].append(statistics.mean(log_loss_G))
         result['log_loss_D'].append(statistics.mean(log_loss_D))
-        print('loss_G =', result['log_loss_G'][-1], ', loss_D =', result['log_loss_D'][-1])
+        print('loss_G = {} , loss_D = {}'.format(result['log_loss_G'][-1], result['log_loss_D'][-1]))
         
         # 定めた保存周期ごとにモデル，出力画像，ログを保存する
         if (epoch+1)%10 == 0:
