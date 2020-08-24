@@ -48,9 +48,9 @@ def train(savedir, _list, root, epochs, batch_size, nz):
     os.makedirs('{}/loss'.format(savedir), exist_ok=True)
     os.makedirs('{}/logs'.format(savedir), exist_ok=True)
 
-    myloss = MyLoss()
-
     device = 'cuda'
+
+    myloss = MyLoss()
 
     df = pd.read_csv(_list, usecols=['Path'])
     img_id = df.values.tolist()

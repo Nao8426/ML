@@ -51,9 +51,9 @@ def train(savedir, train_list, test_list, root, epochs, batch_size):
     os.makedirs('{}/loss'.format(savedir), exist_ok=True)
     os.makedirs('{}/logs'.format(savedir), exist_ok=True)
 
-    myloss = MyLoss()
-
     device = 'cuda'
+
+    myloss = MyLoss()
 
     # モデルの読み込み
     model = CNN(channel)

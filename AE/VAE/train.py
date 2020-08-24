@@ -1,4 +1,4 @@
-# DCGAN(Deep Convolutional GAN)の学習
+# VAE(Variational Auto Encoder)の学習
 import numpy as np
 import os
 import pandas as pd
@@ -11,30 +11,24 @@ from torch import nn
 from tqdm import tqdm
 # 自作モジュール
 from load import LoadDataset
-from network import Generator, Discriminator, Encoder, CodeDiscriminator
+from network import Encoder, Decoder
 from util import plot, output_env
 
 
-# 各モデルのロス
+# ジェネレータ，ディスクリミネータのロス
 class MyLoss():
     def __init__(self):
         self.loss_BCE = nn.BCEWithLogitsLoss()
         self.loss_L1 = nn.L1Loss()
 
-    def gen_loss(self, x, y, p, q, r, alpha=1.0):
-        return self.loss_L1(x, y) + alpha*(self.loss_BCE(p, r)/2 + self.loss_BCE(q, r)/2)
-
-    def dis_loss(self, x, y, p, q, r):
-        return self.loss_BCE(x, y) + self.loss_BCE(p, r)/2 + self.loss_BCE(q, r)/2
-
     def enc_loss(self, x, y, p, q, alpha=1.0):
         return self.loss_L1(x, y) + alpha*self.loss_BCE(p, q)
 
-    def cdis_loss(self, x, y, p, q):
-        return self.loss_BCE(x, y) + self.loss_BCE(p, q)
+    def dec_loss(self, x, y, p, q, alpha=1.0):
+        return self.loss_L1(x, y) + alpha*self.loss_BCE(p, q)
 
 
-def train(savedir, _list, root, epochs, batch_size, nz):
+def train(savedir, _list, root, epochs, batch_size, nz, start, finish):
     # ジェネレータのAdam設定(default: lr=0.001, betas=(0.9, 0.999), weight_decay=0) 
     para_G = {'lr': 0.0002, 'betas': (0.5, 0.9), 'weight_decay': 0}
     # ディスクリミネータのAdam設定
@@ -60,9 +54,9 @@ def train(savedir, _list, root, epochs, batch_size, nz):
     os.makedirs('{}/loss'.format(savedir), exist_ok=True)
     os.makedirs('{}/logs'.format(savedir), exist_ok=True)
 
-    device = 'cuda'
-
     myloss = MyLoss()
+
+    device = 'cuda'
 
     df = pd.read_csv(_list, usecols=['Path'])
     img_id = df.values.tolist()
@@ -93,7 +87,7 @@ def train(savedir, _list, root, epochs, batch_size, nz):
     result['log_loss_E'] = []
     result['log_loss_CD'] = []
 
-    imgs = LoadDataset(df, root)
+    imgs = LoadDataset(df[start:finish+1], root)
     train_img = torch.utils.data.DataLoader(imgs, batch_size=batch_size, shuffle=True, drop_last=True)
 
     output_env('{}/env.txt'.format(savedir), batch_size, nz, para_G, para_D, para_E, para_CD, gen_model, dis_model, enc_model, cdis_model)
@@ -105,11 +99,13 @@ def train(savedir, _list, root, epochs, batch_size, nz):
 
         for real_img in tqdm(train_img):
             # 入力の乱数を作成
-            rnd_z = torch.randn(batch_size, nz, 1, 1)
+            # rnd_z = torch.rand(batch_size, nz, 1, 1)    # 一様分布
+            rnd_z = torch.randn(batch_size, nz, 1, 1)   # 標準正規分布
+            # rnd_z = torch.from_numpy(np.asarray(np.random.normal(loc=0, scale=10, size=(batch_size, nz, 1, 1)), dtype=np.float32))  # 正規分布
 
             # 画像の輝度値を正規化
             real_img = real_img.float()
-            real_img = real_img / 255
+            real_img = real_img / 127.5 - 1.0
             # 3次元テンソルを4次元テンソルに変換（1チャネルの情報を追加）
             batch, height, width = real_img.shape
             real_img = torch.reshape(real_img, (batch_size, 1, height, width))
@@ -124,8 +120,7 @@ def train(savedir, _list, root, epochs, batch_size, nz):
             # 特徴ベクトルをジェネレータに入力し，画像を生成
             fake_img = gen_model(real_z)
             rnd_img = gen_model(rnd_z)
-            # ジェネレータの出力を保存
-            fake_img_tensor = fake_img.detach()
+            fake_img_tensor = fake_img.detach() # ジェネレータの出力を保存
             rnd_img_tensor = rnd_img.detach()
 
             # 特徴ベクトルをコードディスクリミネータに入力し，判定結果を取得
@@ -173,24 +168,21 @@ def train(savedir, _list, root, epochs, batch_size, nz):
         result['log_loss_CD'].append(statistics.mean(log_loss_CD))
         print('loss_G =', result['log_loss_G'][-1], ', loss_D =', result['log_loss_D'][-1], ', loss_E =', result['log_loss_E'][-1], ', loss_CD =', result['log_loss_CD'][-1])
         
-        # 定めた保存周期ごとにモデル，出力画像，ログを保存する
-        if (epoch+1)%10 == 0:
-            # モデルの保存
+        # 定めた保存周期ごとにモデル，ロス，ログを保存する
+        if (epoch+1) % 10 == 0:
+            # ジェネレータの出力画像を保存
+            torchvision.utils.save_image(fake_img_tensor[:batch_size], "{}/generating_image/epoch_{:03}.png".format(savedir, epoch+1))
+            torchvision.utils.save_image(rnd_img_tensor[:batch_size], "{}/generating_image_rnd/epoch_{:03}.png".format(savedir, epoch+1))
             torch.save(gen_model.module.state_dict(), '{}/model/G_model_{}.pth'.format(savedir, epoch+1))
             torch.save(dis_model.module.state_dict(), '{}/model/D_model_{}.pth'.format(savedir, epoch+1))
             torch.save(enc_model.module.state_dict(), '{}/model/E_model_{}.pth'.format(savedir, epoch+1))
             torch.save(cdis_model.module.state_dict(), '{}/model/CD_model_{}.pth'.format(savedir, epoch+1))
-
-            # ジェネレータの出力画像を保存
-            torchvision.utils.save_image(fake_img_tensor[:batch_size], "{}/generating_image/epoch_{:03}.png".format(savedir, epoch+1))
-            torchvision.utils.save_image(rnd_img_tensor[:batch_size], "{}/generating_image_rnd/epoch_{:03}.png".format(savedir, epoch+1))
     
             # ログの保存
             with open('{}/logs/logs_{}.pkl'.format(savedir, epoch+1), 'wb') as fp:
                 pickle.dump(result, fp)
 
-        # 定めた保存周期ごとにロスを保存する
-        if (epoch+1)%50 == 0:
+        if (epoch+1) % 50 == 0:
             x = np.linspace(1, epoch+1, epoch+1, dtype='int')
             plot(result['log_loss_G'], result['log_loss_D'], result['log_loss_E'], result['log_loss_CD'], x, savedir)
 
@@ -200,9 +192,9 @@ def train(savedir, _list, root, epochs, batch_size, nz):
         torch.save(dis_model.module.state_dict(), '{}/model/D_model_{}.pth'.format(savedir, epoch+1))
         torch.save(enc_model.module.state_dict(), '{}/model/E_model_{}.pth'.format(savedir, epoch+1))
         torch.save(cdis_model.module.state_dict(), '{}/model/CD_model_{}.pth'.format(savedir, epoch+1))
-
         x = np.linspace(1, epoch+1, epoch+1, dtype='int')
         plot(result['log_loss_G'], result['log_loss_D'], result['log_loss_E'], result['log_loss_CD'], x, savedir)
-        
+    
+        # ログの保存
         with open('{}/logs/logs_{}.pkl'.format(savedir, epoch+1), 'wb') as fp:
             pickle.dump(result, fp)
