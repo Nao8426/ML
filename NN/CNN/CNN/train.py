@@ -26,10 +26,8 @@ class MyLoss():
 
 # 学習用関数
 def train(savedir, train_list, test_list, root, epochs, batch_size):
-    # CNNのAdam設定
-    lr = 0.001  # default: 0.001
-    betas = (0.9, 0.999)    # default: (0.9, 0.999)
-    weight_decay = 0    # default: 0
+    # Adam設定(default: lr=0.001, betas=(0.9, 0.999), weight_decay=0) 
+    opt_para = {'lr': 0.001, 'betas': (0.9, 0.999), 'weight_decay': 0}
 
     # 入力画像のチャンネル数
     channel = 1
@@ -61,7 +59,7 @@ def train(savedir, train_list, test_list, root, epochs, batch_size):
     model = model.to(device)
 
     # 最適化アルゴリズムの設定
-    para = torch.optim.Adam(model.parameters(), lr=lr, betas=betas, weight_decay=weight_decay)
+    para = torch.optim.Adam(model.parameters(), lr=opt_para['lr'], betas=opt_para['betas'], weight_decay=opt_para['weight_decay'])
 
     # ロスの推移を保存するためのリストを確保
     result = []
@@ -75,7 +73,7 @@ def train(savedir, train_list, test_list, root, epochs, batch_size):
     test_dataset = torch.utils.data.DataLoader(test_loader, batch_size=batch_size, shuffle=True, drop_last=True)
 
     # パラメータ設定，ネットワーク構造などの環境をテキストファイルで保存．
-    output_env('{}/env.txt'.format(savedir), batch_size, lr, betas, weight_decay, model)
+    output_env('{}/env.txt'.format(savedir), batch_size, opt_para, model)
 
     for epoch in range(epochs):
         print('#################### epoch: {}/{} ####################'.format(epoch+1, epochs))

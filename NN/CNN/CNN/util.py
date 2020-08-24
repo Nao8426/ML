@@ -52,9 +52,9 @@ def plot(loss, epochs, dirname):
 
 
 # 環境をアウトプットしてテキストファイルで保存
-def output_env(filepath, batch_size, lr, betas, weight_decay, model):
+def output_env(filepath, batch_size, opt_para, model):
     text_set = '##### Setting #####\nMinibatch size: {}\n\n'.format(batch_size)
-    text_optimizer = '##### Optimizer Parameter #####\nlr: {}, betas: {}, weight_decay: {}\n\n'.format(lr, betas, weight_decay)
+    text_optimizer = '##### Optimizer Parameter #####\nlr: {}, betas: {}, weight_decay: {}\n\n'.format(opt_para['lr'], opt_para['betas'], opt_para['weight_decay'])
     text_model = '##### Model #####\n{}\n'.format(model)
     with open(filepath, mode='w') as f:
         f.write(text_set)

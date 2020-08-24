@@ -22,10 +22,10 @@ def plot(loss_G, loss_D, epochs, dirname):
 
 
 # 環境をアウトプットしてテキストファイルで保存
-def output_env(filepath, batch_size, nz, para_G, para_D, gen_model, dis_model):
+def output_env(filepath, batch_size, nz, opt_para_G, opt_para_D, gen_model, dis_model):
     text_set = '##### Setting #####\nMinibatch size: {}\nDim. of random vectors: {}\n\n'.format(batch_size, nz)
-    text_opt_G = '##### Optimizer Parameter #####\nGenerator ==> lr: {}, betas: {}, weight_decay: {}\n'.format(para_G['lr'], para_G['betas'], para_G['weight_decay'])
-    text_opt_D = 'Discriminator ==> lr: {}, betas: {}, weight_decay: {}\n\n'.format(para_D['lr'], para_D['betas'], para_D['weight_decay'])
+    text_opt_G = '##### Optimizer Parameter #####\nGenerator ==> lr: {}, betas: {}, weight_decay: {}\n'.format(opt_para_G['lr'], opt_para_G['betas'], opt_para_G['weight_decay'])
+    text_opt_D = 'Discriminator ==> lr: {}, betas: {}, weight_decay: {}\n\n'.format(opt_para_D['lr'], opt_para_D['betas'], opt_para_D['weight_decay'])
     text_generator = '##### Generator model #####\n{}\n\n'.format(gen_model)
     text_discriminator = '##### Discriminator model #####\n{}'.format(dis_model)
     with open(filepath, mode='w') as f:

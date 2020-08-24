@@ -29,9 +29,9 @@ class MyLoss():
 
 def train(savedir, _list, root, epochs, batch_size, nz):
     # ジェネレータのAdam設定(default: lr=0.001, betas=(0.9, 0.999), weight_decay=0) 
-    para_G = {'lr': 0.0002, 'betas': (0.5, 0.9), 'weight_decay': 0}
+    opt_para_G = {'lr': 0.0002, 'betas': (0.5, 0.9), 'weight_decay': 0}
     # ディスクリミネータのAdam設定
-    para_D = {'lr': 0.0002, 'betas': (0.5, 0.9), 'weight_decay': 0}
+    opt_para_D = {'lr': 0.0002, 'betas': (0.5, 0.9), 'weight_decay': 0}
 
     # 保存先のファイルを作成
     if os.path.exists(savedir):
@@ -65,8 +65,8 @@ def train(savedir, _list, root, epochs, batch_size, nz):
     gen_model, dis_model = gen_model.to(device), dis_model.to(device)
 
     # 最適化アルゴリズムの設定
-    gen_para = torch.optim.Adam(gen_model.parameters(), lr=para_G['lr'], betas=para_G['betas'], weight_decay=para_G['weight_decay'])
-    dis_para = torch.optim.Adam(dis_model.parameters(), lr=para_D['lr'], betas=para_D['betas'], weight_decay=para_D['weight_decay'])
+    gen_para = torch.optim.Adam(gen_model.parameters(), lr=opt_para_G['lr'], betas=opt_para_G['betas'], weight_decay=opt_para_G['weight_decay'])
+    dis_para = torch.optim.Adam(dis_model.parameters(), lr=opt_para_D['lr'], betas=opt_para_D['betas'], weight_decay=opt_para_D['weight_decay'])
 
     # ロスを計算するためのラベル変数
     ones = torch.ones(512).to(device)
@@ -80,7 +80,7 @@ def train(savedir, _list, root, epochs, batch_size, nz):
     imgs = LoadDataset(df, root)
     train_img = torch.utils.data.DataLoader(imgs, batch_size=batch_size, shuffle=True, drop_last=True)
 
-    output_env('{}/env.txt'.format(savedir), batch_size, nz, para_G, para_D, gen_model, dis_model)
+    output_env('{}/env.txt'.format(savedir), batch_size, nz, opt_para_G, opt_para_D, gen_model, dis_model)
 
     for epoch in range(epochs):
         print('########## epoch : {}/{} ##########'.format(epoch+1, epochs))
