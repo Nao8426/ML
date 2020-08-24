@@ -15,7 +15,7 @@ root = '../dataset'  # データセットまでのパス
 parser = argparse.ArgumentParser(description='Convolutional Neural Network')
 parser.add_argument('--gpu', '-g', default=0, type=int, help='GPU ID (negative value indicates CPU)')
 parser.add_argument('--epochs', '-e', default=100, type=int, help='number of epochs to learn')
-parser.add_argument('--batchsize', '-b', default=32, type=int, help='learning minibatch size')
+parser.add_argument('--batchsize', '-b', default=128, type=int, help='learning minibatch size')
 args = parser.parse_args()
 
 # コマンドライン引数により指定されたパラメータを変数に格納
