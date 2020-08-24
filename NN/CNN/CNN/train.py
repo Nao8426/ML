@@ -129,7 +129,9 @@ def train(savedir, train_list, test_list, root, epochs, batch_size):
     # 最後のエポックが保存周期でない場合に，保存．
     if epoch+1 == epochs and (epoch+1)%rotate != 0:
         torch.save(model.module.state_dict(), '{}/model/model_{}.pth'.format(savedir, epoch+1))
+
         x = np.linspace(1, epoch+1, epoch+1, dtype='int')
         plot(result, x, savedir)
+        
         with open('{}/logs/logs_{}.pkl'.format(savedir, epoch+1), 'wb') as fp:
             pickle.dump(result, fp)
