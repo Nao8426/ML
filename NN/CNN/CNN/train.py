@@ -117,7 +117,7 @@ def train(savedir, train_list, test_list, root, epochs, batch_size):
 
             # ロス（画像）の保存
             x = np.linspace(1, epoch+1, epoch+1, dtype='int')
-            plot(result['log_loss'], x, savedir)
+            plot(result, x, savedir)
     
             # ログの保存
             with open('{}/logs/logs_{}.pkl'.format(savedir, epoch+1), 'wb') as fp:
@@ -130,6 +130,6 @@ def train(savedir, train_list, test_list, root, epochs, batch_size):
     if epoch+1 == epochs and (epoch+1)%rotate != 0:
         torch.save(model.module.state_dict(), '{}/model/model_{}.pth'.format(savedir, epoch+1))
         x = np.linspace(1, epoch+1, epoch+1, dtype='int')
-        plot(result['log_loss'], x, savedir)
+        plot(result, x, savedir)
         with open('{}/logs/logs_{}.pkl'.format(savedir, epoch+1), 'wb') as fp:
             pickle.dump(result, fp)
