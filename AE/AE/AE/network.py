@@ -58,3 +58,15 @@ class Decoder(nn.Module):
 
     def forward(self, x):
         return self.main(x)
+
+
+# オートエンコーダの構造
+class AutoEncoder(nn.Module):
+    def __init__(self, width, height, channel):
+        super().__init__()
+        self.enc = Encoder(width, height, channel)
+        self.dec = Decoder(width, height, channel)
+
+    def forward(self, x):
+        x = self.enc(x)
+        return self.dec(x)

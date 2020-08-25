@@ -15,16 +15,12 @@ parser = argparse.ArgumentParser(description='Auto Encoder')
 parser.add_argument('--gpu', '-g', default=0, type=int, help='GPU ID (negative value indicates CPU)')
 parser.add_argument('--epochs', '-e', default=100, type=int, help='number of epochs to learn')
 parser.add_argument('--batchsize', '-b', default=128, type=int, help='learning minibatch size')
-parser.add_argument('--start', '-s', default=0, type=int, help='start of imagelist')
-parser.add_argument('--finish', '-f', default=-1, type=int, help='end of imagelist')
 args = parser.parse_args()
 
 # コマンドライン引数により指定されたパラメータを変数に格納
 GPU_ID = args.gpu
 EPOCHS = args.epochs
 BATCH_SIZE = args.batchsize
-START = args.start
-FINISH = args.finish
 
 # 設定内容を表示
 print('GPU: {}'.format(GPU_ID))
