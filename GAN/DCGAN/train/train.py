@@ -157,6 +157,8 @@ def train(savedir, _list, root, epochs, batch_size, nz):
         torch.save(gen_model.module.state_dict(), '{}/model/G_model_{}.pth'.format(savedir, epoch+1))
         torch.save(dis_model.module.state_dict(), '{}/model/D_model_{}.pth'.format(savedir, epoch+1))
 
+        torchvision.utils.save_image(fake_img_tensor[:batch_size], "{}/generating_image/epoch_{:03}.png".format(savedir, epoch+1))
+
         x = np.linspace(1, epoch+1, epoch+1, dtype='int')
         plot(result['log_loss_G'], result['log_loss_D'], x, savedir)
         

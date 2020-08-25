@@ -57,6 +57,7 @@ def train(savedir, _list, root, epochs, batch_size):
 
     # モデルの読み込み
     ae_model = AutoEncoder(width, height, 1)
+    ae_model = nn.DataParallel(ae_model)
     ae_model = ae_model.to(device)
 
     # 最適化アルゴリズムの設定
@@ -107,9 +108,11 @@ def train(savedir, _list, root, epochs, batch_size):
         
         # 定めた保存周期ごとにモデル，ロス，ログを保存する
         if (epoch+1) % 10 == 0:
-            # ジェネレータの出力画像を保存
+            # モデルの保存
+            torch.save(ae_model.module.state_dict(), '{}/model/model_{}.pth'.format(savedir, epoch+1))
+
+            # オートエンコーダの出力画像を保存
             torchvision.utils.save_image(output_tensor[:batch_size], "{}/generating_image/epoch_{:03}.png".format(savedir, epoch+1))
-            torch.save(ae_model.dec().module.state_dict(), '{}/model/model_{}.pth'.format(savedir, epoch+1))
     
             # ログの保存
             with open('{}/logs/logs_{}.pkl'.format(savedir, epoch+1), 'wb') as fp:
@@ -121,7 +124,9 @@ def train(savedir, _list, root, epochs, batch_size):
 
     # 最後のエポックが保存周期でない場合に，保存する
     if (epoch+1)%10 != 0 and epoch+1 == epochs:
-        torch.save(ae_model.dec().module.state_dict(), '{}/model/model_{}.pth'.format(savedir, epoch+1))
+        torch.save(ae_model.module.state_dict(), '{}/model/model_{}.pth'.format(savedir, epoch+1))
+
+        torchvision.utils.save_image(output_tensor[:batch_size], "{}/generating_image/epoch_{:03}.png".format(savedir, epoch+1))
 
         x = np.linspace(1, epoch+1, epoch+1, dtype='int')
         plot(result, x, savedir)
