@@ -1,3 +1,1 @@
-CNNでMNISTの数字画像を分類するプログラム
-######注意点######
-imagelistはデータセット内のファイル名に適宜合わせること．
+Convolutional Neural Network
