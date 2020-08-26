@@ -13,7 +13,7 @@ root = '../dataset' # データセットまでのパス
 # コマンドライン引数のパース
 parser = argparse.ArgumentParser(description='Auto Encoder')
 parser.add_argument('--gpu', '-g', default=0, type=int, help='GPU ID (negative value indicates CPU)')
-parser.add_argument('--epochs', '-e', default=100, type=int, help='number of epochs to learn')
+parser.add_argument('--epochs', '-e', default=1000, type=int, help='number of epochs to learn')
 parser.add_argument('--batchsize', '-b', default=128, type=int, help='learning minibatch size')
 args = parser.parse_args()
 
