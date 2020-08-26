@@ -41,7 +41,6 @@ def train(savedir, _list, root, epochs, batch_size):
     os.makedirs('{}/generating_image'.format(savedir), exist_ok=True)
     os.makedirs('{}/model'.format(savedir), exist_ok=True)
     os.makedirs('{}/loss'.format(savedir), exist_ok=True)
-    os.makedirs('{}/logs'.format(savedir), exist_ok=True)
 
     device = 'cuda'
 
@@ -105,19 +104,20 @@ def train(savedir, _list, root, epochs, batch_size):
 
         result.append(statistics.mean(log_loss))
         print('loss = {}'.format(result[-1]))
+
+        # ロスのログを保存
+        with open('{}/loss/log.txt'.format(savedir), mode='a') as f:
+            f.write('Epoch {:03}: {}\n'.format(epoch+1, result[-1]))
         
-        # 定めた保存周期ごとにモデル，ロス，ログを保存する
+        # 定めた保存周期ごとにモデル，出力画像を保存する
         if (epoch+1) % 10 == 0:
             # モデルの保存
             torch.save(ae_model.module.state_dict(), '{}/model/model_{}.pth'.format(savedir, epoch+1))
 
             # オートエンコーダの出力画像を保存
             torchvision.utils.save_image(output_tensor[:batch_size], "{}/generating_image/epoch_{:03}.png".format(savedir, epoch+1))
-    
-            # ログの保存
-            with open('{}/logs/logs_{}.pkl'.format(savedir, epoch+1), 'wb') as fp:
-                pickle.dump(result, fp)
 
+        # 定めた保存周期ごとにロスを保存する
         if (epoch+1) % 50 == 0:
             x = np.linspace(1, epoch+1, epoch+1, dtype='int')
             plot(result, x, savedir)
@@ -130,6 +130,3 @@ def train(savedir, _list, root, epochs, batch_size):
 
         x = np.linspace(1, epoch+1, epoch+1, dtype='int')
         plot(result, x, savedir)
-
-        with open('{}/logs/logs_{}.pkl'.format(savedir, epoch+1), 'wb') as fp:
-            pickle.dump(result, fp)

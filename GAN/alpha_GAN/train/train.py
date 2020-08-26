@@ -58,7 +58,6 @@ def train(savedir, _list, root, epochs, batch_size, nz):
     os.makedirs('{}/generating_image_rnd'.format(savedir), exist_ok=True)
     os.makedirs('{}/model'.format(savedir), exist_ok=True)
     os.makedirs('{}/loss'.format(savedir), exist_ok=True)
-    os.makedirs('{}/logs'.format(savedir), exist_ok=True)
 
     device = 'cuda'
 
@@ -172,8 +171,13 @@ def train(savedir, _list, root, epochs, batch_size, nz):
         result['log_loss_E'].append(statistics.mean(log_loss_E))
         result['log_loss_CD'].append(statistics.mean(log_loss_CD))
         print('loss_G = {} , loss_D = {} , loss_E = {} , loss_CD = {}'.format(result['log_loss_G'][-1], result['log_loss_D'][-1], result['log_loss_E'][-1], result['log_loss_CD'][-1]))
+
+        # ロスのログを保存
+        with open('{}/loss/log.txt'.format(savedir), mode='a') as f:
+            f.write('##### Epoch {:03} #####\n'.format(epoch+1))
+            f.write('G: {}, D: {}, E: {}, CD: {}\n'.format(epoch+1, result['log_loss_G'][-1], result['log_loss_D'][-1], result['log_loss_E'][-1], result['log_loss_CD'][-1]))
         
-        # 定めた保存周期ごとにモデル，出力画像，ログを保存する
+        # 定めた保存周期ごとにモデル，出力画像を保存する
         if (epoch+1)%10 == 0:
             # モデルの保存
             torch.save(gen_model.module.state_dict(), '{}/model/G_model_{}.pth'.format(savedir, epoch+1))
@@ -184,10 +188,6 @@ def train(savedir, _list, root, epochs, batch_size, nz):
             # ジェネレータの出力画像を保存
             torchvision.utils.save_image(fake_img_tensor[:batch_size], "{}/generating_image/epoch_{:03}.png".format(savedir, epoch+1))
             torchvision.utils.save_image(rnd_img_tensor[:batch_size], "{}/generating_image_rnd/epoch_{:03}.png".format(savedir, epoch+1))
-    
-            # ログの保存
-            with open('{}/logs/logs_{}.pkl'.format(savedir, epoch+1), 'wb') as fp:
-                pickle.dump(result, fp)
 
         # 定めた保存周期ごとにロスを保存する
         if (epoch+1)%50 == 0:
@@ -206,6 +206,3 @@ def train(savedir, _list, root, epochs, batch_size, nz):
 
         x = np.linspace(1, epoch+1, epoch+1, dtype='int')
         plot(result['log_loss_G'], result['log_loss_D'], result['log_loss_E'], result['log_loss_CD'], x, savedir)
-        
-        with open('{}/logs/logs_{}.pkl'.format(savedir, epoch+1), 'wb') as fp:
-            pickle.dump(result, fp)
