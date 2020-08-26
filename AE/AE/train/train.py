@@ -69,7 +69,7 @@ def train(savedir, _list, root, epochs, batch_size):
     imgs = LoadDataset(df, root)
     train_img = torch.utils.data.DataLoader(imgs, batch_size=batch_size, shuffle=True, drop_last=True)
     
-    # output_env('{}/env.txt'.format(savedir), batch_size, opt_para, ae_model.enc(), ae_model.dec())
+    output_env('{}/env.txt'.format(savedir), batch_size, opt_para, ae_model)
 
     for epoch in range(epochs):
         print('########## epoch : {}/{} ##########'.format(epoch+1, epochs))

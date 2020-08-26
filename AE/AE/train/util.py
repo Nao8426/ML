@@ -20,13 +20,11 @@ def plot(loss, epochs, dirname):
 
 
 # 環境をアウトプットしてテキストファイルで保存
-def output_env(filepath, batch_size, opt_para, enc_model, dec_model):
+def output_env(filepath, batch_size, opt_para, model):
     text_set = '##### Setting #####\nMinibatch size: {}\n\n'.format(batch_size)
     text_opt = '##### Optimizer Parameter #####\nEncoder ==> lr: {}, betas: {}, weight_decay: {}\n'.format(opt_para['lr'], opt_para['betas'], opt_para['weight_decay'])
-    text_encoder = '##### Encoder model #####\n{}\n\n'.format(enc_model)
-    text_decoder = '##### Decoder model #####\n{}\n\n'.format(dec_model)
+    text_model = '##### Model #####\n{}'.format(model)
     with open(filepath, mode='w') as f:
         f.write(text_set)
         f.write(text_opt)
-        f.write(text_encoder)
-        f.write(text_decoder)
+        f.write(text_model)
