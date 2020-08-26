@@ -6,8 +6,8 @@ from torch import nn
 class Encoder(nn.Module):
     L1_C = 128
     L2_C = 64
-    L3_C = 12
-    L4_C = 2
+    L3_C = 32
+    L4_C = 16
 
     def __init__(self, width, height, channel):
         self.in_C = width * height * channel
@@ -16,12 +16,15 @@ class Encoder(nn.Module):
         self.main = nn.Sequential(
             nn.Flatten(),
             nn.Linear(in_features=self.in_C, out_features=self.L1_C),
+            nn.BatchNorm2d(self.L1_C),
             nn.ReLU(inplace=True),
 
             nn.Linear(in_features=self.L1_C, out_features=self.L2_C),
+            nn.BatchNorm2d(self.L2_C),
             nn.ReLU(inplace=True),
 
             nn.Linear(in_features=self.L2_C, out_features=self.L3_C),
+            nn.BatchNorm2d(self.L3_C),
             nn.ReLU(inplace=True),
 
             nn.Linear(in_features=self.L3_C, out_features=self.L4_C)
@@ -33,8 +36,8 @@ class Encoder(nn.Module):
 
 # デコーダの構造
 class Decoder(nn.Module):
-    in_C = 2
-    L1_C = 12
+    in_C = 16
+    L1_C = 32
     L2_C = 64
     L3_C = 128
 
@@ -44,12 +47,15 @@ class Decoder(nn.Module):
         super().__init__()
         self.main = nn.Sequential(
             nn.Linear(in_features=self.in_C, out_features=self.L1_C),
+            nn.BatchNorm2d(self.L1_C),
             nn.ReLU(inplace=True),
 
             nn.Linear(in_features=self.L1_C, out_features=self.L2_C),
+            nn.BatchNorm2d(self.L2_C),
             nn.ReLU(inplace=True),
 
             nn.Linear(in_features=self.L2_C, out_features=self.L3_C),
+            nn.BatchNorm2d(self.L3_C),
             nn.ReLU(inplace=True),
 
             nn.Linear(in_features=self.L3_C, out_features=self.L4_C),
