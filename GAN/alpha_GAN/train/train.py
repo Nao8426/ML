@@ -108,7 +108,7 @@ def train(savedir, _list, root, epochs, batch_size, nz):
 
             # 画像の輝度値を正規化
             real_img = real_img.float()
-            real_img = real_img / 255
+            real_img = real_img / 127.5 - 1.0
             # 3次元テンソルを4次元テンソルに変換（1チャネルの情報を追加）
             batch, height, width = real_img.shape
             real_img = torch.reshape(real_img, (batch_size, 1, height, width))

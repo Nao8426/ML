@@ -52,8 +52,18 @@ def train(savedir, train_list, test_list, root, epochs, batch_size):
 
     myloss = MyLoss()
 
+    # トレーニングデータとテストデータのリストを読み込み
+    df_train = pd.read_csv(train_list)
+    df_test = pd.read_csv(test_list)
+
+    img_id = df_train.values.tolist()
+    check_img = Image.open('{}/{}'.format(root, img_id[0]))
+    check_img = check_img.convert('L')
+    check_img = np.array(check_img)
+    height, width = check_img.shape
+
     # モデルの読み込み
-    model = CNN(channel)
+    model = CNN(width, height, channel)
     model = nn.DataParallel(model)
     model = model.to(device)
 
@@ -63,11 +73,9 @@ def train(savedir, train_list, test_list, root, epochs, batch_size):
     # ロスの推移を保存するためのリストを確保
     result = []
 
-    # トレーニングデータとテストデータを読み込み（ローダーを作成）
-    df_train = pd.read_csv(train_list)
+    # データセットのローダーを作成
     train_loader = LoadDataset(df_train, root)
     train_dataset = torch.utils.data.DataLoader(train_loader, batch_size=batch_size, shuffle=True, drop_last=True)
-    df_test = pd.read_csv(test_list)
     test_loader = LoadDataset(df_test, root)
     test_dataset = torch.utils.data.DataLoader(test_loader, batch_size=batch_size, shuffle=True, drop_last=True)
 
@@ -82,7 +90,7 @@ def train(savedir, train_list, test_list, root, epochs, batch_size):
         for img, label in tqdm(train_dataset):
             img = img.float()
             # 0~1に正規化
-            img = img / 255
+            img = img / 255.0
             # 3次元テンソルを4次元テンソルに変換（1チャネルの情報を追加）
             batch, height, width = img.shape
             img = torch.reshape(img, (batch_size, 1, height, width))
