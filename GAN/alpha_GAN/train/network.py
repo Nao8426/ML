@@ -91,7 +91,7 @@ class Generator(nn.Module):
     # 順伝播
     def forward(self, x):
         x = self.fc(x)
-        x = x.view(x.shape[0], self.L1_C, self.H, self.W)
+        x = x.view(x.shape[0], self.inRes_C, self.H, self.W)
         x = self.res(x)
         return self.conv(x)
 

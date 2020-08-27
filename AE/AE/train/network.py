@@ -4,30 +4,30 @@ from torch import nn
 
 # エンコーダの構造
 class Encoder(nn.Module):
-    L1_C = 128
-    L2_C = 64
-    L3_C = 32
-    L4_C = 16
+    FC1_C = 128
+    FC2_C = 64
+    FC3_C = 32
+    FC4_C = 16
 
     def __init__(self, width, height, channel):
-        self.in_C = width * height * channel
+        inFC_C = width * height * channel
 
         super().__init__()
         self.main = nn.Sequential(
             nn.Flatten(),
-            nn.Linear(in_features=self.in_C, out_features=self.L1_C),
-            nn.BatchNorm2d(self.L1_C),
+            nn.Linear(in_features=inFC_C, out_features=self.FC1_C),
+            nn.BatchNorm2d(self.FC1_C),
             nn.ReLU(inplace=True),
 
-            nn.Linear(in_features=self.L1_C, out_features=self.L2_C),
-            nn.BatchNorm2d(self.L2_C),
+            nn.Linear(in_features=self.FC1_C, out_features=self.FC2_C),
+            nn.BatchNorm2d(self.FC2_C),
             nn.ReLU(inplace=True),
 
-            nn.Linear(in_features=self.L2_C, out_features=self.L3_C),
-            nn.BatchNorm2d(self.L3_C),
+            nn.Linear(in_features=self.FC2_C, out_features=self.FC3_C),
+            nn.BatchNorm2d(self.FC3_C),
             nn.ReLU(inplace=True),
 
-            nn.Linear(in_features=self.L3_C, out_features=self.L4_C)
+            nn.Linear(in_features=self.FC3_C, out_features=self.FC4_C)
         )
 
     def forward(self, x):
@@ -36,29 +36,29 @@ class Encoder(nn.Module):
 
 # デコーダの構造
 class Decoder(nn.Module):
-    in_C = 16
-    L1_C = 32
-    L2_C = 64
-    L3_C = 128
+    inFC_C = 16
+    FC1_C = 32
+    FC2_C = 64
+    FC3_C = 128
 
     def __init__(self, width, height, channel):
-        self.L4_C = width * height * channel
+        FC4_C = width * height * channel
 
         super().__init__()
         self.main = nn.Sequential(
-            nn.Linear(in_features=self.in_C, out_features=self.L1_C),
-            nn.BatchNorm2d(self.L1_C),
+            nn.Linear(in_features=self.inFC_C, out_features=self.FC1_C),
+            nn.BatchNorm2d(self.FC1_C),
             nn.ReLU(inplace=True),
 
-            nn.Linear(in_features=self.L1_C, out_features=self.L2_C),
-            nn.BatchNorm2d(self.L2_C),
+            nn.Linear(in_features=self.FC1_C, out_features=self.FC2_C),
+            nn.BatchNorm2d(self.FC2_C),
             nn.ReLU(inplace=True),
 
-            nn.Linear(in_features=self.L2_C, out_features=self.L3_C),
-            nn.BatchNorm2d(self.L3_C),
+            nn.Linear(in_features=self.FC2_C, out_features=self.FC3_C),
+            nn.BatchNorm2d(self.FC3_C),
             nn.ReLU(inplace=True),
 
-            nn.Linear(in_features=self.L3_C, out_features=self.L4_C),
+            nn.Linear(in_features=self.FC3_C, out_features=FC4_C),
             nn.Tanh()
         )
 
