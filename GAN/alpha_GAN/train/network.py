@@ -133,7 +133,8 @@ class Discriminator(nn.Module):
 
         self.fc = nn.Sequential(
             nn.Flatten(),
-            nn.Linear(in_features=inFC_C, out_features=1)
+            nn.Linear(in_features=inFC_C, out_features=1),
+            nn.Sigmoid()
         )
 
     def forward(self, x):
@@ -179,7 +180,7 @@ class Encoder(nn.Module):
 
         self.fc = nn.Sequential(
             nn.Flatten(),
-            nn.Linear(in_features=inFC_C, out_features=nz),
+            nn.Linear(in_features=inFC_C, out_features=nz)
         )
 
     def forward(self, x):
@@ -204,7 +205,8 @@ class CodeDiscriminator(nn.Module):
             nn.Linear(in_features=C, out_features=C),
             nn.LeakyReLU(0.2, inplace=True),
 
-            nn.Linear(in_features=C, out_features=1)
+            nn.Linear(in_features=C, out_features=1),
+            nn.Sigmoid()
         )
 
     def forward(self, x):
