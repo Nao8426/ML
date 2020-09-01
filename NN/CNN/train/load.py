@@ -6,10 +6,10 @@ from PIL import Image
 
 class LoadDataset(torch.utils.data.Dataset):
     def __init__(self, df, root, transform=None):
-        self.transform = transform
         self.img_id = df['Path'].values.tolist()
         self.img_label = df['Label'].values.tolist()
         self.root = root
+        self.transform = transform
 
     def __len__(self):
         return len(self.img_id)

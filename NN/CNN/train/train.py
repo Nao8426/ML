@@ -23,12 +23,13 @@ class MyLoss():
         return self.loss_CEL(x, y)
 
 
+# データセットに対する処理（正規化など）
 class trans():
     def __init__(self):
-        self.trans = torchvision.transforms.ToTensor()
+        self.norm = torchvision.transforms.ToTensor()
 
     def __call__(self, image):
-        return self.trans(image)
+        return self.norm(image)
 
 
 # 学習用関数

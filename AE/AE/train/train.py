@@ -23,6 +23,15 @@ class MyLoss():
         return self.loss_MSE(x, y)
 
 
+# データセットに対する処理（正規化など）
+class trans():
+    def __init__(self):
+        self.norm = torchvision.transforms.Compose([torchvision.transforms.ToTensor(), torchvision.transforms.Normalize((0.5,), (0.5,))])
+
+    def __call__(self, image):
+        return self.norm(image)
+
+
 def train(savedir, _list, root, epochs, batch_size):
     # Adam設定(default: lr=0.001, betas=(0.9, 0.999), weight_decay=0) 
     opt_para = {'lr': 0.001, 'betas': (0.9, 0.999), 'weight_decay': 0}
@@ -64,7 +73,7 @@ def train(savedir, _list, root, epochs, batch_size):
     # ロスの推移
     result = []
 
-    imgs = LoadDataset(df, root)
+    imgs = LoadDataset(df, root, transform=trans())
     train_img = torch.utils.data.DataLoader(imgs, batch_size=batch_size, shuffle=True, drop_last=True)
     
     output_env('{}/env.txt'.format(savedir), batch_size, opt_para, ae_model)
@@ -75,13 +84,6 @@ def train(savedir, _list, root, epochs, batch_size):
         log_loss = []
 
         for real_img in tqdm(train_img):
-            # 画像の輝度値を正規化
-            real_img = real_img.float()
-            real_img = real_img / 127.5 - 1.0
-            # 3次元テンソルを4次元テンソルに変換（1チャネルの情報を追加）
-            batch, height, width = real_img.shape
-            real_img = torch.reshape(real_img, (batch_size, 1, height, width))
-
             # GPU用の変数に変換
             real_img = real_img.to(device)
 
