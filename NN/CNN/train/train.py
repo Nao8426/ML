@@ -23,6 +23,14 @@ class MyLoss():
         return self.loss_CEL(x, y)
 
 
+class trans():
+    def __init__(self):
+        self.trans = torchvision.transforms.ToTensor()
+
+    def __call__(self, image):
+        return self.trans(image)
+
+
 # 学習用関数
 def train(savedir, train_list, test_list, root, epochs, batch_size):
     # Adam設定(default: lr=0.001, betas=(0.9, 0.999), weight_decay=0) 
@@ -55,7 +63,7 @@ def train(savedir, train_list, test_list, root, epochs, batch_size):
     df_train = pd.read_csv(train_list)
     df_test = pd.read_csv(test_list)
 
-    img_id = df_train.values.tolist()
+    img_id = df_train['Path'].values.tolist()
     check_img = Image.open('{}/{}'.format(root, img_id[0]))
     check_img = check_img.convert('L')
     check_img = np.array(check_img)
@@ -73,9 +81,9 @@ def train(savedir, train_list, test_list, root, epochs, batch_size):
     result = []
 
     # データセットのローダーを作成
-    train_loader = LoadDataset(df_train, root)
+    train_loader = LoadDataset(df_train, root, transform=trans())
     train_dataset = torch.utils.data.DataLoader(train_loader, batch_size=batch_size, shuffle=True, drop_last=True)
-    test_loader = LoadDataset(df_test, root)
+    test_loader = LoadDataset(df_test, root, transform=trans())
     test_dataset = torch.utils.data.DataLoader(test_loader, batch_size=batch_size, shuffle=True, drop_last=True)
 
     # パラメータ設定，ネットワーク構造などの環境をテキストファイルで保存．
@@ -87,13 +95,6 @@ def train(savedir, train_list, test_list, root, epochs, batch_size):
         log_loss = []
 
         for img, label in tqdm(train_dataset):
-            img = img.float()
-            # 0~1に正規化
-            img = img / 255.0
-            # 3次元テンソルを4次元テンソルに変換（1チャネルの情報を追加）
-            batch, height, width = img.shape
-            img = torch.reshape(img, (batch_size, 1, height, width))
-
             # 画像とラベルをGPU用変数に設定
             img = img.to(device)
             label = label.to(device)
