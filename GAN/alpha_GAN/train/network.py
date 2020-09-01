@@ -116,19 +116,18 @@ class Discriminator(nn.Module):
         super().__init__()
         self.conv = nn.Sequential(
             nn.Conv2d(in_channels=channel, out_channels=self.Conv_C, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(self.Conv_C),
             nn.LeakyReLU(0.2, inplace=True),
             nn.AvgPool2d(kernel_size=2)
         )
 
         self.res = nn.Sequential(
-            ResBlock(self.Conv_C, self.Res1_C, self.Res1_midC, bn=True, act_fn=nn.LeakyReLU(0.2, inplace=True)),
+            ResBlock(self.Conv_C, self.Res1_C, self.Res1_midC, bn=False, act_fn=nn.LeakyReLU(0.2, inplace=True)),
             nn.AvgPool2d(kernel_size=2),
-            ResBlock(self.Res1_C, self.Res2_C, self.Res2_midC, bn=True, act_fn=nn.LeakyReLU(0.2, inplace=True)),
+            ResBlock(self.Res1_C, self.Res2_C, self.Res2_midC, bn=False, act_fn=nn.LeakyReLU(0.2, inplace=True)),
             nn.AvgPool2d(kernel_size=2),
-            ResBlock(self.Res2_C, self.Res3_C, self.Res3_midC, bn=True, act_fn=nn.LeakyReLU(0.2, inplace=True)),
+            ResBlock(self.Res2_C, self.Res3_C, self.Res3_midC, bn=False, act_fn=nn.LeakyReLU(0.2, inplace=True)),
             nn.AvgPool2d(kernel_size=2),
-            ResBlock(self.Res3_C, self.Res4_C, self.Res4_midC, bn=True, act_fn=nn.LeakyReLU(0.2, inplace=True))
+            ResBlock(self.Res3_C, self.Res4_C, self.Res4_midC, bn=False, act_fn=nn.LeakyReLU(0.2, inplace=True))
         )
 
         self.fc = nn.Sequential(
