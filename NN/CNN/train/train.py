@@ -24,7 +24,7 @@ class MyLoss():
 
 
 # データセットに対する処理（正規化など）
-class trans():
+class Trans():
     def __init__(self):
         self.norm = torchvision.transforms.ToTensor()
 
@@ -82,9 +82,9 @@ def train(savedir, train_list, test_list, root, epochs, batch_size):
     result = []
 
     # データセットのローダーを作成
-    train_loader = LoadDataset(df_train, root, transform=trans())
+    train_loader = LoadDataset(df_train, root, transform=Trans())
     train_dataset = torch.utils.data.DataLoader(train_loader, batch_size=batch_size, shuffle=True, drop_last=True)
-    test_loader = LoadDataset(df_test, root, transform=trans())
+    test_loader = LoadDataset(df_test, root, transform=Trans())
     test_dataset = torch.utils.data.DataLoader(test_loader, batch_size=batch_size, shuffle=True, drop_last=True)
 
     # パラメータ設定，ネットワーク構造などの環境をテキストファイルで保存．

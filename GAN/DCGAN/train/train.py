@@ -27,7 +27,7 @@ class MyLoss():
 
 
 # データセットに対する処理（正規化など）
-class trans():
+class Trans():
     def __init__(self):
         self.norm = torchvision.transforms.Compose([torchvision.transforms.ToTensor(), torchvision.transforms.Normalize((0.5,), (0.5,))])
 
@@ -84,7 +84,7 @@ def train(savedir, _list, root, epochs, batch_size, nz):
     result['log_loss_G'] = []
     result['log_loss_D'] = []
 
-    imgs = LoadDataset(df, root, transform=trans())
+    imgs = LoadDataset(df, root, transform=Trans())
     train_img = torch.utils.data.DataLoader(imgs, batch_size=batch_size, shuffle=True, drop_last=True)
 
     output_env('{}/env.txt'.format(savedir), batch_size, nz, opt_para_G, opt_para_D, gen_model, dis_model)

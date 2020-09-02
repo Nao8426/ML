@@ -24,7 +24,7 @@ class MyLoss():
 
 
 # データセットに対する処理（正規化など）
-class trans():
+class Trans():
     def __init__(self):
         self.norm = torchvision.transforms.Compose([torchvision.transforms.ToTensor(), torchvision.transforms.Normalize((0.5,), (0.5,))])
 
@@ -73,7 +73,7 @@ def train(savedir, _list, root, epochs, batch_size):
     # ロスの推移
     result = []
 
-    imgs = LoadDataset(df, root, transform=trans())
+    imgs = LoadDataset(df, root, transform=Trans())
     train_img = torch.utils.data.DataLoader(imgs, batch_size=batch_size, shuffle=True, drop_last=True)
     
     output_env('{}/env.txt'.format(savedir), batch_size, opt_para, ae_model)
