@@ -26,7 +26,7 @@ class Generator(nn.Module):
 
     def forward(self, x, res, eps=1e-7):
         # to image
-        n,c = x.shape
+        n, c = x.shape
         x = x.reshape(n,c//16,4,4)
 
         # for the highest resolution

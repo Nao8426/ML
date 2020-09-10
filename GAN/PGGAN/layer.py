@@ -1,6 +1,33 @@
-import numpy as np
 import torch
 from torch import nn
+
+
+class PixelNorm(nn.Module):
+    def forward(self, x):
+        eps = 1e-7
+        mean = torch.mean(x**2, dim=1, keepdims=True)
+        return x / (torch.sqrt(mean)+eps)
+
+
+class WeightScale(nn.Module):
+    def forward(self, x, gain=2):
+        scale = (gain/x.shape[1])**0.5
+        return x * scale
+
+
+class Conv2d(nn.Module):
+    def __init__(self, in_ch, out_ch, kernel_size, padding=0):
+        super().__init__()
+        self.layers = nn.Sequential(
+            WeightScale(),
+            nn.ReflectionPad2d(padding),
+            nn.Conv2d(in_ch, out_ch, kernel_size, padding=0),
+            PixelNorm(),
+            )
+        nn.init.kaiming_normal_(self.layers[2].weight)
+
+    def forward(self, x):
+        return self.layers(x)
 
 
 class ConvModuleG(nn.Module):
@@ -15,18 +42,18 @@ class ConvModuleG(nn.Module):
 
         if first:
             layers = [
-                Conv2d(inch, outch, 3, padding=1),
+                Conv2d(in_ch=inch, out_ch=outch, kernel_size=3, padding=1),
                 nn.LeakyReLU(0.2, inplace=False),
-                Conv2d(outch, outch, 3, padding=1),
+                Conv2d(in_ch=outch, out_ch=outch, kernel_size=3, padding=1),
                 nn.LeakyReLU(0.2, inplace=False),
             ]
 
         else:
             layers = [
                 nn.Upsample((out_size, out_size), mode='nearest'),
-                Conv2d(inch, outch, 3, padding=1),
+                Conv2d(in_ch=inch, out_ch=outch, kernel_size=3, padding=1),
                 nn.LeakyReLU(0.2, inplace=False),
-                Conv2d(outch, outch, 3, padding=1),
+                Conv2d(in_ch=outch, out_ch=outch, kernel_size=3, padding=1),
                 nn.LeakyReLU(0.2, inplace=False),
             ]
 
@@ -49,17 +76,17 @@ class ConvModuleD(nn.Module):
         if final:
             layers = [
                 MiniBatchStd(), # final block only
-                Conv2d(inch+1, outch, 3, padding=1),
+                Conv2d(in_ch=inch+1, out_ch=outch, kernel_size=3, padding=1),
                 nn.LeakyReLU(0.2, inplace=False),
-                Conv2d(outch, outch, 4, padding=0), 
+                Conv2d(in_ch=outch, out_ch=outch, kernel_size=4, padding=0), 
                 nn.LeakyReLU(0.2, inplace=False),
                 nn.Conv2d(outch, 1, 1, padding=0), 
             ]
         else:
             layers = [
-                Conv2d(inch, outch, 3, padding=1),
+                Conv2d(in_ch=inch, out_ch=outch, kernel_size=3, padding=1),
                 nn.LeakyReLU(0.2, inplace=False),
-                Conv2d(outch, outch, 3, padding=1),
+                Conv2d(in_ch=outch, out_ch=outch, kernel_size=3, padding=1),
                 nn.LeakyReLU(0.2, inplace=False),
                 nn.AdaptiveAvgPool2d((out_size, out_size)),
             ]
@@ -74,6 +101,6 @@ class MiniBatchStd(nn.Module):
     def forward(self, x):
         std = torch.std(x, dim=0, keepdim=True)
         mean = torch.mean(std, dim=(1,2,3), keepdim=True)
-        n,c,h,w = x.shape
+        n, c, h, w = x.shape
         mean = torch.ones(n,1,h,w, dtype=x.dtype, device=x.device)*mean
         return torch.cat((x,mean), dim=1)

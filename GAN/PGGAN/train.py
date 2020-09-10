@@ -1,42 +1,14 @@
 import numpy as np
-import os
+# import os
 import pandas as pd
-import statistics
+# import statistics
 import torch
 import torchvision
-from PIL import Image
 from torch import nn
+from torch.nn import functional as F
 # 自作モジュール
 from load import LoadDataset
 from network import Generator, Discriminator
-
-
-class PixelNorm(nn.Module):
-    def forward(self, x):
-        eps = 1e-7
-        mean = torch.mean(x**2, dim=1, keepdims=True)
-        return x / (torch.sqrt(mean)+eps)
-
-
-class WeightScale(nn.Module):
-    def forward(self, x, gain=2):
-        scale = (gain/x.shape[1])**0.5
-        return x * scale
-
-    
-class Conv2d(nn.Module):
-    def __init__(self, inch, outch, kernel_size, padding=0):
-        super().__init__()
-        self.layers = nn.Sequential(
-            WeightScale(),
-            nn.ReflectionPad2d(padding),
-            nn.Conv2d(inch, outch, kernel_size, padding=0),
-            PixelNorm(),
-            )
-        nn.init.kaiming_normal_(self.layers[2].weight)
-
-    def forward(self, x):
-        return self.layers(x)
 
 
 def gradient_penalty(dis_model, real, fake, res, batch_size, gamma=1):
@@ -44,9 +16,7 @@ def gradient_penalty(dis_model, real, fake, res, batch_size, gamma=1):
     alpha = torch.rand(batch_size, 1, 1, 1, requires_grad=True).to(device)
     x = alpha*real + (1-alpha)*fake
     d_ = dis_model.forward(x, res)
-    g = torch.autograd.grad(outputs=d_, inputs=x,
-                            grad_outputs=torch.ones(d_.shape).to(device),
-                            create_graph=True, retain_graph=True,only_inputs=True)[0]
+    g = torch.autograd.grad(outputs=d_, inputs=x, grad_outputs=torch.ones(d_.shape).to(device), create_graph=True, retain_graph=True,only_inputs=True)[0]
     g = g.reshape(batch_size, -1)
     return ((g.norm(2,dim=1)/gamma-1.0)**2).mean()
 
@@ -60,11 +30,7 @@ class Trans():
         return self.norm(image)
 
 
-if __name__ == '__main__':
-    _list = '../imagelist/HIT-MW_cut.csv'
-    root = '../dataset' # データセットまでのパス
-    batch_size = 32
-
+def train(savedir, _list, root, epochs, batch_size, nz):
     # ジェネレータのAdam設定(default: lr=0.001, betas=(0.9, 0.999), weight_decay=0) 
     para_G = {'lr': 0.0005, 'betas': (0.0, 0.99), 'weight_decay': 0}
     # ディスクリミネータのAdam設定
@@ -90,7 +56,7 @@ if __name__ == '__main__':
     train_loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, drop_last=True)
 
     # training
-    nepoch = 10
+    epochs = 10
 
     # ロスの推移
     result = {}
@@ -101,8 +67,7 @@ if __name__ == '__main__':
     # constant random inputs
     z0 = torch.randn(16, 512*16).to(device)
     z0 = torch.clamp(z0, -1.,1.)
-    print(z0)
-    for iepoch in range(nepoch):
+    for epoch in range(epochs):
         if j==res_step*6.5:
             gen_para.param_groups[0]['lr'] = 0.0001
             dis_para.param_groups[0]['lr'] = 0.0001
@@ -147,14 +112,13 @@ if __name__ == '__main__':
             lossD.backward()
             dis_para.step()
 
-            print('ep: %02d %04d %04d lossG=%.10f lossD=%.10f' %
-                  (iepoch, i, j, lossG.item(), lossD.item()))
+            print('ep: {:02} {:04} {:04} lossG={} lossD={}'.format(epoch, i, j, lossG.item(), lossD.item()))
 
             result['log_loss_G'].append(lossG.item())
             result['log_loss_D'].append(lossD.item())
             j += 1
 
-            if j%500==0:
+            if j%500 == 0:
                 gen_model_mavg.eval()
                 z = torch.randn(16, 512*16).to(x.device)
                 x_0 = gen_model_mavg.forward(z0, res)
@@ -168,7 +132,7 @@ if __name__ == '__main__':
                 dst = dst.transpose(0,3,1,4,2)
                 dst = dst.reshape(4*h,8*w,3)
                 dst = np.clip(dst*255., 0, 255).astype(np.uint8)
-                skio.imsave('out/img_%03d_%05d.png' % (iepoch, j), dst)
+                skio.imsave('out/img_{:03}_{:05}.png'.format((epoch, j), dst))
 
                 # losses_ = np.array(losses)
                 # niter = losses_.shape[0]//100*100
@@ -176,16 +140,13 @@ if __name__ == '__main__':
                 # plt.plot(x_iter, losses_[:niter,0].reshape(100,-1).mean(1))
                 # plt.plot(x_iter, losses_[:niter,1].reshape(100,-1).mean(1))
                 # plt.tight_layout()
-                # plt.savefig('out/loss_%03d_%05d.png' % (iepoch, j))
+                # plt.savefig('out/loss_%03d_%05d.png' % (epoch, j))
                 # plt.clf()
 
                 gen_model_mavg.train()
 
             if j >= res_step*7:
                 break
-
-            if j%100==0:
-                coolGPU()
 
         if j >= res_step*7:
             break
