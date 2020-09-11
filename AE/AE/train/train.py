@@ -36,6 +36,8 @@ def train(savedir, _list, root, epochs, batch_size):
     # Adam設定(default: lr=0.001, betas=(0.9, 0.999), weight_decay=0) 
     opt_para = {'lr': 0.001, 'betas': (0.9, 0.999), 'weight_decay': 0}
 
+    device = 'cuda'
+
     # 保存先のファイルを作成
     if os.path.exists(savedir):
         num = 1
@@ -49,8 +51,6 @@ def train(savedir, _list, root, epochs, batch_size):
     os.makedirs('{}/generating_image'.format(savedir), exist_ok=True)
     os.makedirs('{}/model'.format(savedir), exist_ok=True)
     os.makedirs('{}/loss'.format(savedir), exist_ok=True)
-
-    device = 'cuda'
 
     df = pd.read_csv(_list, usecols=['Path'])
     img_id = df.values.tolist()

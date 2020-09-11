@@ -1,5 +1,5 @@
 import numpy as np
-# import os
+import os
 import pandas as pd
 # import statistics
 import torch
@@ -38,6 +38,20 @@ def train(savedir, _list, root, epochs, batch_size, nz):
 
     device = 'cuda'
 
+    # 保存先のファイルを作成
+    if os.path.exists(savedir):
+        num = 1
+        while 1:
+            if os.path.exists('{}({})'.format(savedir, num)):
+                num += 1
+            else:
+                savedir = '{}({})'.format(savedir, num)
+                break
+    os.makedirs(savedir, exist_ok=True)
+    os.makedirs('{}/generating_image'.format(savedir), exist_ok=True)
+    os.makedirs('{}/model'.format(savedir), exist_ok=True)
+    os.makedirs('{}/loss'.format(savedir), exist_ok=True)
+
     gen_model, dis_model = Generator(), Discriminator()
     gen_model, dis_model = nn.DataParallel(gen_model), nn.DataParallel(dis_model)
     gen_model, dis_model = gen_model.to(device), dis_model.to(device)
@@ -72,13 +86,12 @@ def train(savedir, _list, root, epochs, batch_size, nz):
             gen_para.param_groups[0]['lr'] = 0.0001
             dis_para.param_groups[0]['lr'] = 0.0001
 
-        for i, data in enumerate(train_loader):
-            x, y = data
-            x = x.to(device)
+        for i, real_img in enumerate(train_loader):
+            real_img = real_img.to(device)
             res = j/res_step
 
             ### train generator ###
-            z = torch.randn(batch_size, 512*16).to(x.device)
+            z = torch.randn(batch_size, 512*16).to(device)
             x_ = gen_model.forward(z, res)
             d_ = dis_model.forward(x_, res) # fake
             lossG = -d_.mean() # WGAN_GP
@@ -94,14 +107,14 @@ def train(savedir, _list, root, epochs, batch_size, nz):
                 p_mavg.data = alpha*p_mavg.data + (1.0-alpha)*p.data
 
             ### train discriminator ###
-            z = torch.randn(x.shape[0], 512*16).to(x.device)
+            z = torch.randn(real_img.shape[0], 512*16).to(device)
             x_ = gen_model.forward(z, res)
-            x = F.adaptive_avg_pool2d(x, x_.shape[2:4])
-            d = dis_model.forward(x, res)   # real
+            real_img = F.adaptive_avg_pool2d(real_img, x_.shape[2:4])
+            d = dis_model.forward(real_img, res)   # real
             d_ = dis_model.forward(x_, res) # fake
             loss_real = -d.mean()
             loss_fake = d_.mean()
-            loss_gp = gradient_penalty(dis_model, x.data, x_.data, res, x.shape[0])
+            loss_gp = gradient_penalty(dis_model, real_img.data, x_.data, res, real_img.shape[0])
             loss_drift = (d**2).mean()
 
             beta_gp = 10.0
@@ -120,19 +133,14 @@ def train(savedir, _list, root, epochs, batch_size, nz):
 
             if j%500 == 0:
                 gen_model_mavg.eval()
-                z = torch.randn(16, 512*16).to(x.device)
+                z = torch.randn(16, 512*16).to(device)
                 x_0 = gen_model_mavg.forward(z0, res)
                 x_ = gen_model_mavg.forward(z, res)
 
                 dst = torch.cat((x_0, x_), dim=0)
-                dst = F.interpolate(dst, (128, 128), mode='nearest')
-                dst = dst.to('cpu').detach().numpy()
-                n, c, h, w = dst.shape
-                dst = dst.reshape(4,8,c,h,w)
-                dst = dst.transpose(0,3,1,4,2)
-                dst = dst.reshape(4*h,8*w,3)
-                dst = np.clip(dst*255., 0, 255).astype(np.uint8)
-                skio.imsave('out/img_{:03}_{:05}.png'.format((epoch, j), dst))
+                dst = F.interpolate(dst, (128, 256), mode='nearest')
+                dst = dst.detach()
+                torchvision.utils.save_image(dst, "{}/generating_image/img_{:03}_{:05}.png".format(savedir, epoch+1, j))
 
                 # losses_ = np.array(losses)
                 # niter = losses_.shape[0]//100*100

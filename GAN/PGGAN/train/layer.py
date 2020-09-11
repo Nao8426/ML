@@ -15,6 +15,15 @@ class WeightScale(nn.Module):
         return x * scale
 
 
+class MiniBatchStd(nn.Module):
+    def forward(self, x):
+        std = torch.std(x, dim=0, keepdim=True)
+        mean = torch.mean(std, dim=(1,2,3), keepdim=True)
+        n, c, h, w = x.shape
+        mean = torch.ones(n,1,h,w, dtype=x.dtype, device=x.device)*mean
+        return torch.cat((x,mean), dim=1)
+
+
 class Conv2d(nn.Module):
     def __init__(self, in_ch, out_ch, kernel_size, padding=0):
         super().__init__()
@@ -50,7 +59,7 @@ class ConvModuleG(nn.Module):
 
         else:
             layers = [
-                nn.Upsample((out_size, out_size), mode='nearest'),
+                nn.Upsample((out_size[0], out_size[1]), mode='nearest'),
                 Conv2d(in_ch=inch, out_ch=outch, kernel_size=3, padding=1),
                 nn.LeakyReLU(0.2, inplace=False),
                 Conv2d(in_ch=outch, out_ch=outch, kernel_size=3, padding=1),
@@ -88,19 +97,10 @@ class ConvModuleD(nn.Module):
                 nn.LeakyReLU(0.2, inplace=False),
                 Conv2d(in_ch=outch, out_ch=outch, kernel_size=3, padding=1),
                 nn.LeakyReLU(0.2, inplace=False),
-                nn.AdaptiveAvgPool2d((out_size, out_size)),
+                nn.AdaptiveAvgPool2d((out_size[0], out_size[1])),
             ]
 
         self.layers = nn.Sequential(*layers)
 
     def forward(self, x):
         return self.layers(x)
-
-
-class MiniBatchStd(nn.Module):
-    def forward(self, x):
-        std = torch.std(x, dim=0, keepdim=True)
-        mean = torch.mean(std, dim=(1,2,3), keepdim=True)
-        n, c, h, w = x.shape
-        mean = torch.ones(n,1,h,w, dtype=x.dtype, device=x.device)*mean
-        return torch.cat((x,mean), dim=1)

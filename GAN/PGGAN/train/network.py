@@ -13,13 +13,13 @@ class Generator(nn.Module):
         # conv modules & toRGBs
         scale = 1
         inchs  = np.array([512,256,128,64,32,16], dtype=np.uint32)*scale
-        outchs = np.array([256,128, 64,32,16, 8], dtype=np.uint32)*scale
-        sizes = np.array([4,8,16,32,64,128], dtype=np.uint32)
+        outchs = np.array([256,128,64,32,16, 8], dtype=np.uint32)*scale
+        sizes = np.array([[4, 8], [8, 16], [16, 32], [32, 64], [64, 128], [128, 256]], dtype=np.uint32)
         firsts = np.array([True, False, False, False, False, False], dtype=np.bool)
         blocks, toRGBs = [], []
         for s, inch, outch, first in zip(sizes, inchs, outchs, firsts):
             blocks.append(ConvModuleG(s, inch, outch, first))
-            toRGBs.append(nn.Conv2d(outch, 3, 1, padding=0))
+            toRGBs.append(nn.Conv2d(outch, 1, 1, padding=0))
 
         self.blocks = nn.ModuleList(blocks)
         self.toRGBs = nn.ModuleList(toRGBs)
@@ -62,13 +62,13 @@ class Discriminator(nn.Module):
 
         # conv modules & toRGBs
         scale = 1
-        inchs = np.array([256,128, 64,32,16, 8], dtype=np.uint32)*scale
+        inchs = np.array([256,128,64,32,16, 8], dtype=np.uint32)*scale
         outchs  = np.array([512,256,128,64,32,16], dtype=np.uint32)*scale
-        sizes = np.array([1,4,8,16,32,64], dtype=np.uint32)
+        sizes = np.array([[1, 2], [4, 8], [8, 16], [16, 32], [32, 64], [64, 128]], dtype=np.uint32)
         finals = np.array([True, False, False, False, False, False], dtype=np.bool)
         blocks, fromRGBs = [], []
         for s, inch, outch, final in zip(sizes, inchs, outchs, finals):
-            fromRGBs.append(nn.Conv2d(3, inch, 1, padding=0))
+            fromRGBs.append(nn.Conv2d(1, inch, 1, padding=0))
             blocks.append(ConvModuleD(s, inch, outch, final=final))
 
         self.fromRGBs = nn.ModuleList(fromRGBs)

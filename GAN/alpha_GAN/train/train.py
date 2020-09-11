@@ -52,6 +52,8 @@ def train(savedir, _list, root, epochs, batch_size, nz):
     # コードディスクリミネータのAdam設定
     opt_para_CD = {'lr': 0.0002, 'betas': (0.5, 0.9), 'weight_decay': 0}
 
+    device = 'cuda'
+
     # 保存先のファイルを作成
     if os.path.exists(savedir):
         num = 1
@@ -66,8 +68,6 @@ def train(savedir, _list, root, epochs, batch_size, nz):
     os.makedirs('{}/generating_image_rnd'.format(savedir), exist_ok=True)
     os.makedirs('{}/model'.format(savedir), exist_ok=True)
     os.makedirs('{}/loss'.format(savedir), exist_ok=True)
-
-    device = 'cuda'
 
     myloss = MyLoss()
 

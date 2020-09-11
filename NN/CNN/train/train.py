@@ -43,6 +43,10 @@ def train(savedir, train_list, test_list, root, epochs, batch_size):
     # モデル等の保存周期
     rotate = 10
 
+    device = 'cuda'
+
+    myloss = MyLoss()
+
     # 保存先のファイルを作成
     if os.path.exists(savedir):
         num = 1
@@ -55,10 +59,6 @@ def train(savedir, train_list, test_list, root, epochs, batch_size):
     os.makedirs(savedir, exist_ok=True)
     os.makedirs('{}/model'.format(savedir), exist_ok=True)
     os.makedirs('{}/loss'.format(savedir), exist_ok=True)
-
-    device = 'cuda'
-
-    myloss = MyLoss()
 
     # トレーニングデータとテストデータのリストを読み込み
     df_train = pd.read_csv(train_list)

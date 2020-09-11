@@ -16,7 +16,7 @@ class LoadDataset(torch.utils.data.Dataset):
     def __getitem__(self, i):
         image = Image.open('{}/{}'.format(self.root, self.img_id[i][0]))
         image = image.convert('L')
-        if transform:
+        if self.transform:
             image = self.transform(image)
 
         return image
