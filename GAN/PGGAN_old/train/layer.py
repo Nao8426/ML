@@ -2,7 +2,6 @@ import torch
 from torch import nn
 
 
-# チャネル方向に二乗平均をとってsqrtした値の平均
 class PixelNorm(nn.Module):
     def forward(self, x):
         eps = 1e-7
@@ -10,14 +9,12 @@ class PixelNorm(nn.Module):
         return x / (torch.sqrt(mean)+eps)
 
 
-# 各レイヤの重みを入力チャネルサイズで正規化
 class WeightScale(nn.Module):
     def forward(self, x, gain=2):
         scale = (gain/x.shape[1])**0.5
         return x * scale
 
 
-# 正解データのバッチが持つ多様性（標準偏差平均）をディスクリミネータの判断材料にする
 class MiniBatchStd(nn.Module):
     def forward(self, x):
         std = torch.std(x, dim=0, keepdim=True)
@@ -27,11 +24,9 @@ class MiniBatchStd(nn.Module):
         return torch.cat((x,mean), dim=1)
 
 
-# 畳み込み層
 class Conv2d(nn.Module):
     def __init__(self, in_ch, out_ch, kernel_size, padding=0):
         super().__init__()
-        
         self.layers = nn.Sequential(
             WeightScale(),
             nn.ReflectionPad2d(padding),
@@ -44,8 +39,13 @@ class Conv2d(nn.Module):
         return self.layers(x)
 
 
-# ジェネレータ用の畳み込みモジュール
 class ConvModuleG(nn.Module):
+    '''
+    Args:
+        out_size: (int), Ex.: 16 (resolution)
+        inch: (int),  Ex.: 256
+        outch: (int), Ex.: 128
+    '''
     def __init__(self, out_size, inch, outch, first=False):
         super().__init__()
 
@@ -73,6 +73,12 @@ class ConvModuleG(nn.Module):
 
 
 class ConvModuleD(nn.Module):
+    '''
+    Args:
+        out_size: (int), Ex.: 16 (resolution)
+        inch: (int),  Ex.: 256
+        outch: (int), Ex.: 128
+    '''
     def __init__(self, out_size, inch, outch, final=False):
         super().__init__()
 

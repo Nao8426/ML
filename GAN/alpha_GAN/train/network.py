@@ -8,6 +8,7 @@ class ResBlock(nn.Module):
         self.bn = bn
 
         super().__init__()
+
         self.main_bn = nn.Sequential(
             nn.Conv2d(in_channels=in_channels, out_channels=mid_channels, kernel_size=1, stride=1, padding=0),
             nn.BatchNorm2d(mid_channels),
@@ -65,6 +66,7 @@ class Generator(nn.Module):
 
         # ネットワーク構造
         super().__init__()
+        
         self.fc = nn.Sequential(
             nn.Flatten(),
             nn.Linear(in_features=nz, out_features=outFC_C),
@@ -114,6 +116,7 @@ class Discriminator(nn.Module):
         inFC_C = W * H * self.Res4_C
 
         super().__init__()
+
         self.conv = nn.Sequential(
             nn.Conv2d(in_channels=channel, out_channels=self.Conv_C, kernel_size=3, stride=1, padding=1),
             nn.LeakyReLU(0.2, inplace=True),
@@ -160,6 +163,7 @@ class Encoder(nn.Module):
         inFC_C = W * H * self.Res4_C
 
         super().__init__()
+
         self.conv = nn.Sequential(
             nn.Conv2d(in_channels=channel, out_channels=self.Conv_C, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(self.Conv_C),
@@ -193,6 +197,7 @@ class CodeDiscriminator(nn.Module):
     def __init__(self, nz):    
         C = nz // 2
         super().__init__()
+        
         self.main = nn.Sequential(
             nn.Flatten(),
             nn.Linear(in_features=nz, out_features=C),

@@ -13,6 +13,7 @@ class Encoder(nn.Module):
         inFC_C = width * height * channel
 
         super().__init__()
+
         self.main = nn.Sequential(
             nn.Flatten(),
             nn.Linear(in_features=inFC_C, out_features=self.FC1_C),
@@ -45,6 +46,7 @@ class Decoder(nn.Module):
         FC4_C = width * height * channel
 
         super().__init__()
+        
         self.main = nn.Sequential(
             nn.Linear(in_features=self.inFC_C, out_features=self.FC1_C),
             nn.BatchNorm2d(self.FC1_C),

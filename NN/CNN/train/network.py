@@ -14,6 +14,7 @@ class CNN(nn.Module):
         inFC_C = W * H * self.Conv_C
 
         super().__init__()
+        
         self.main = nn.Sequential(
             nn.Conv2d(in_channels=channel, out_channels=self.Conv_C, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(self.Conv_C),

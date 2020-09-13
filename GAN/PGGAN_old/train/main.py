@@ -7,7 +7,7 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 
 # 使用データセットのリストのパス
-_list = '../imagelist/train.csv'
+_list = '../imagelist/HIT-MW_cut.csv'
 root = '../dataset' # データセットまでのパス
 
 # コマンドライン引数のパース

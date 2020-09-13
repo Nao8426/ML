@@ -18,6 +18,7 @@ class Generator(nn.Module):
 
         # ネットワーク構造
         super().__init__()
+        
         self.fc = nn.Sequential(
             nn.Flatten(),
             nn.Linear(in_features=nz, out_features=outFC_C),
@@ -62,6 +63,7 @@ class Discriminator(nn.Module):
         inFC_C = W * H * self.Conv4_C
 
         super().__init__()
+
         self.main = nn.Sequential(
             nn.Conv2d(in_channels=channel, out_channels=self.Conv1_C, kernel_size=4, stride=2, padding=1),
             nn.BatchNorm2d(self.Conv1_C),

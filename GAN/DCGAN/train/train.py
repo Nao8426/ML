@@ -43,6 +43,8 @@ def train(savedir, _list, root, epochs, batch_size, nz):
 
     device = 'cuda'
 
+    myloss = MyLoss()
+
     # 保存先のファイルを作成
     if os.path.exists(savedir):
         num = 1
@@ -56,8 +58,6 @@ def train(savedir, _list, root, epochs, batch_size, nz):
     os.makedirs('{}/generating_image'.format(savedir), exist_ok=True)
     os.makedirs('{}/model'.format(savedir), exist_ok=True)
     os.makedirs('{}/loss'.format(savedir), exist_ok=True)
-
-    myloss = MyLoss()
 
     df = pd.read_csv(_list, usecols=['Path'])
     img_id = df.values.tolist()
@@ -110,7 +110,7 @@ def train(savedir, _list, root, epochs, batch_size, nz):
             # 生成画像をディスクリミネータに入力し，判定結果を取得
             out = dis_model(fake_img)
 
-            # 真正画像を真，生成画像を偽と識別できるようにロスを計算
+            # ディスクリミネータに真正画像と生成画像を入力
             real_out = dis_model(real_img)
             fake_out = dis_model(fake_img_tensor)
 
@@ -137,7 +137,7 @@ def train(savedir, _list, root, epochs, batch_size, nz):
         # ロスのログを保存
         with open('{}/loss/log.txt'.format(savedir), mode='a') as f:
             f.write('##### Epoch {:03} #####\n'.format(epoch+1))
-            f.write('G: {}, D: {}\n'.format(epoch+1, result['log_loss_G'][-1], result['log_loss_D'][-1]))
+            f.write('G: {}, D: {}\n'.format(result['log_loss_G'][-1], result['log_loss_D'][-1]))
         
         # 定めた保存周期ごとにモデル，出力画像を保存する
         if (epoch+1)%10 == 0:
