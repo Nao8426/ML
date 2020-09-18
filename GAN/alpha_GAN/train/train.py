@@ -1,4 +1,4 @@
-# DCGAN(Deep Convolutional GAN)の学習
+# alpha-GAN(alpha Generative Adversarial Net)の学習
 import numpy as np
 import os
 import pandas as pd
