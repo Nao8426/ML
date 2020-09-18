@@ -100,17 +100,20 @@ def train(savedir, _list, root, epochs, batch_size, nz):
     result['log_loss_E'] = []
     result['log_loss_CD'] = []
 
-    imgs = LoadDataset(df, root, transform=Trans())
-    train_img = torch.utils.data.DataLoader(imgs, batch_size=batch_size, shuffle=True, drop_last=True)
+    dataset = LoadDataset(df, root, transform=Trans())
+    train_loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, drop_last=True)
 
     output_env('{}/env.txt'.format(savedir), batch_size, nz, opt_para_G, opt_para_D, opt_para_E, opt_para_CD, gen_model, dis_model, enc_model, cdis_model)
+
+    # テスト用の一定乱数
+    z0 = torch.randn(batch_size, nz, 1, 1)
 
     for epoch in range(epochs):
         print('########## epoch : {}/{} ##########'.format(epoch+1, epochs))
 
         log_loss_G, log_loss_D, log_loss_E, log_loss_CD = [], [], [], []
 
-        for real_img in tqdm(train_img):
+        for real_img in tqdm(train_loader):
             # 入力の乱数を作成
             rnd_z = torch.randn(batch_size, nz, 1, 1)
 
@@ -126,7 +129,6 @@ def train(savedir, _list, root, epochs, batch_size, nz):
             rnd_img = gen_model(rnd_z)
             # ジェネレータの出力を保存
             fake_img_tensor = fake_img.detach()
-            rnd_img_tensor = rnd_img.detach()
 
             # 特徴ベクトルをコードディスクリミネータに入力し，判定結果を取得
             real_cy = cdis_model(real_z)
@@ -186,9 +188,14 @@ def train(savedir, _list, root, epochs, batch_size, nz):
             torch.save(enc_model.module.state_dict(), '{}/model/E_model_{}.pth'.format(savedir, epoch+1))
             torch.save(cdis_model.module.state_dict(), '{}/model/CD_model_{}.pth'.format(savedir, epoch+1))
 
+            gen_model.eval()
+            rnd_img_test = gen_model(z0)
+
             # ジェネレータの出力画像を保存
             torchvision.utils.save_image(fake_img_tensor[:batch_size], "{}/generating_image/epoch_{:03}.png".format(savedir, epoch+1))
-            torchvision.utils.save_image(rnd_img_tensor[:batch_size], "{}/generating_image_rnd/epoch_{:03}.png".format(savedir, epoch+1))
+            torchvision.utils.save_image(rnd_img_test[:batch_size], "{}/generating_image_rnd/epoch_{:03}.png".format(savedir, epoch+1))
+
+            gen_model.train()
 
         # 定めた保存周期ごとにロスを保存する
         if (epoch+1)%50 == 0:
@@ -202,8 +209,11 @@ def train(savedir, _list, root, epochs, batch_size, nz):
         torch.save(enc_model.module.state_dict(), '{}/model/E_model_{}.pth'.format(savedir, epoch+1))
         torch.save(cdis_model.module.state_dict(), '{}/model/CD_model_{}.pth'.format(savedir, epoch+1))
 
+        gen_model.eval()
+        rnd_img_test = gen_model(z0)
+
         torchvision.utils.save_image(fake_img_tensor[:batch_size], "{}/generating_image/epoch_{:03}.png".format(savedir, epoch+1))
-        torchvision.utils.save_image(rnd_img_tensor[:batch_size], "{}/generating_image_rnd/epoch_{:03}.png".format(savedir, epoch+1))
+        torchvision.utils.save_image(rnd_img_test[:batch_size], "{}/generating_image_rnd/epoch_{:03}.png".format(savedir, epoch+1))
 
         x = np.linspace(1, epoch+1, epoch+1, dtype='int')
         plot(result['log_loss_G'], result['log_loss_D'], result['log_loss_E'], result['log_loss_CD'], x, savedir)

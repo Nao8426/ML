@@ -40,9 +40,6 @@ def train(savedir, train_list, test_list, root, epochs, batch_size):
     # 入力画像のチャンネル数
     channel = 1
 
-    # モデル等の保存周期
-    rotate = 10
-
     device = 'cuda'
 
     myloss = MyLoss()
@@ -82,10 +79,10 @@ def train(savedir, train_list, test_list, root, epochs, batch_size):
     result = []
 
     # データセットのローダーを作成
-    train_loader = LoadDataset(df_train, root, transform=Trans())
-    train_dataset = torch.utils.data.DataLoader(train_loader, batch_size=batch_size, shuffle=True, drop_last=True)
-    test_loader = LoadDataset(df_test, root, transform=Trans())
-    test_dataset = torch.utils.data.DataLoader(test_loader, batch_size=batch_size, shuffle=True, drop_last=True)
+    train_dataset = LoadDataset(df_train, root, transform=Trans())
+    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True, drop_last=True)
+    test_dataset = LoadDataset(df_test, root, transform=Trans())
+    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=True, drop_last=True)
 
     # パラメータ設定，ネットワーク構造などの環境をテキストファイルで保存．
     output_env('{}/env.txt'.format(savedir), batch_size, opt_para, model)
@@ -95,7 +92,7 @@ def train(savedir, train_list, test_list, root, epochs, batch_size):
 
         log_loss = []
 
-        for img, label in tqdm(train_dataset):
+        for img, label in tqdm(train_loader):
             # 画像とラベルをGPU用変数に設定
             img = img.to(device)
             label = label.to(device)
@@ -121,19 +118,20 @@ def train(savedir, train_list, test_list, root, epochs, batch_size):
             f.write('Epoch {:03}: {}\n'.format(epoch+1, result[-1]))
         
         # 定めた保存周期ごとにモデル，ロスを保存．
-        if (epoch+1) % rotate == 0:
+        if (epoch+1)%10 == 0:
             # モデルの保存
             torch.save(model.module.state_dict(), '{}/model/model_{}.pth'.format(savedir, epoch+1))
 
+        if (epoch+1)%50 == 0:
             # ロス（画像）の保存
             x = np.linspace(1, epoch+1, epoch+1, dtype='int')
             plot(result, x, savedir)
 
         # 各エポック終わりに，テストデータに対する精度を計算．
-        evaluate(model, root, test_dataset, batch_size)
+        evaluate(model, root, test_loader, batch_size)
 
     # 最後のエポックが保存周期でない場合に，保存．
-    if epoch+1 == epochs and (epoch+1)%rotate != 0:
+    if epoch+1 == epochs and (epoch+1)%10 != 0:
         torch.save(model.module.state_dict(), '{}/model/model_{}.pth'.format(savedir, epoch+1))
 
         x = np.linspace(1, epoch+1, epoch+1, dtype='int')

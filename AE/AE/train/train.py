@@ -73,8 +73,8 @@ def train(savedir, _list, root, epochs, batch_size):
     # ロスの推移
     result = []
 
-    imgs = LoadDataset(df, root, transform=Trans())
-    train_img = torch.utils.data.DataLoader(imgs, batch_size=batch_size, shuffle=True, drop_last=True)
+    dataset = LoadDataset(df, root, transform=Trans())
+    train_loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, drop_last=True)
     
     output_env('{}/env.txt'.format(savedir), batch_size, opt_para, ae_model)
 
@@ -83,7 +83,7 @@ def train(savedir, _list, root, epochs, batch_size):
 
         log_loss = []
 
-        for real_img in tqdm(train_img):
+        for real_img in tqdm(train_loader):
             # GPU用の変数に変換
             real_img = real_img.to(device)
 
