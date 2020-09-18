@@ -33,7 +33,7 @@ class Trans():
 
 
 # 学習用関数
-def train(savedir, train_list, test_list, root, epochs, batch_size):
+def train(savedir, train_list, test_list, root_train, root_test, epochs, batch_size):
     # Adam設定(default: lr=0.001, betas=(0.9, 0.999), weight_decay=0) 
     opt_para = {'lr': 0.001, 'betas': (0.9, 0.999), 'weight_decay': 0}
 
@@ -62,7 +62,7 @@ def train(savedir, train_list, test_list, root, epochs, batch_size):
     df_test = pd.read_csv(test_list)
 
     img_id = df_train['Path'].values.tolist()
-    check_img = Image.open('{}/{}'.format(root, img_id[0]))
+    check_img = Image.open('{}/{}'.format(root_train, img_id[0]))
     check_img = check_img.convert('L')
     check_img = np.array(check_img)
     height, width = check_img.shape
@@ -79,9 +79,9 @@ def train(savedir, train_list, test_list, root, epochs, batch_size):
     result = []
 
     # データセットのローダーを作成
-    train_dataset = LoadDataset(df_train, root, transform=Trans())
+    train_dataset = LoadDataset(df_train, root_train, transform=Trans())
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True, drop_last=True)
-    test_dataset = LoadDataset(df_test, root, transform=Trans())
+    test_dataset = LoadDataset(df_test, root_test, transform=Trans())
     test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=True, drop_last=True)
 
     # パラメータ設定，ネットワーク構造などの環境をテキストファイルで保存．
@@ -128,7 +128,7 @@ def train(savedir, train_list, test_list, root, epochs, batch_size):
             plot(result, x, savedir)
 
         # 各エポック終わりに，テストデータに対する精度を計算．
-        evaluate(model, root, test_loader, batch_size)
+        evaluate(model, test_loader, batch_size)
 
     # 最後のエポックが保存周期でない場合に，保存．
     if epoch+1 == epochs and (epoch+1)%10 != 0:

@@ -5,14 +5,14 @@ import torch
 
 
 # テストデータに対する精度を計算
-def evaluate(model, root, test_dataset, batch_size):
+def evaluate(model, test_loader, batch_size):
     device = 'cuda'
 
     model.eval()    # 推論モードへ切り替え（Dropoutなどの挙動に影響）
 
     correct = 0
 
-    for img, label in test_dataset:
+    for img, label in test_loader:
         img = img.float()
         img = img / 255
         # 3次元テンソルを4次元テンソルに変換（1チャネルの情報を追加）
@@ -27,7 +27,7 @@ def evaluate(model, root, test_dataset, batch_size):
             if l == pred[i]:
                 correct += 1
 
-    data_num = len(test_dataset.dataset)  # データの総数
+    data_num = len(test_loader.dataset)  # データの総数
     acc = correct / data_num * 100 # 精度
 
     print('Accuracy for test dataset: {}/{} ({:.1f}%)'.format(correct, data_num, acc))

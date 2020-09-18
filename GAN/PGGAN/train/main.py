@@ -8,7 +8,7 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 # 使用データセットのリストのパス
 _list = '../imagelist/train.csv'
-root = '../dataset' # データセットまでのパス
+root = '../dataset/train' # データセットまでのパス
 
 # コマンドライン引数のパース
 parser = argparse.ArgumentParser(description='Progressive Growing of GANs')
