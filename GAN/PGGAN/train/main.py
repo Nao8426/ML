@@ -15,7 +15,7 @@ parser = argparse.ArgumentParser(description='Progressive Growing of GANs')
 parser.add_argument('--gpu', '-g', default=0, type=int, help='GPU ID (negative value indicates CPU)')
 parser.add_argument('--epochs', '-e', default=1000, type=int, help='number of epochs to learn')
 parser.add_argument('--batchsize', '-b', default=32, type=int, help='learning minibatch size')
-parser.add_argument('--nz', '-z', default=16, type=int, help='dimensionality of random vevtors')
+parser.add_argument('--nz', '-z', default=16, type=int, help='dimensionality of random vectors')
 args = parser.parse_args()
 
 # コマンドライン引数により指定されたパラメータを変数に格納
