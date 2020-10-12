@@ -6,6 +6,8 @@ from train import train
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 
+# 保存先のディレクトリのパス
+savedir = '../progress/tmp'
 # 使用データセットのリストのパス
 train_list = '../imagelist/train.csv'
 test_list = '../imagelist/test.csv'
@@ -34,4 +36,4 @@ print('Minibatch size : {}'.format(BATCH_SIZE))
 os.environ['CUDA_DEVICE_ORDER'] = "PCI_BUS_ID"
 os.environ['CUDA_VISIBLE_DEVICES'] = '{}'.format(GPU_ID)
 
-train('../progress/tmp', train_list, test_list, root_train, root_test, EPOCHS, BATCH_SIZE)
+train(savedir, train_list, test_list, root_train, root_test, EPOCHS, BATCH_SIZE)
