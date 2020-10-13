@@ -107,6 +107,8 @@ def train(savedir, _list, root, epochs, batch_size, nz):
 
             # ジェネレータに入力
             fake_img = gen_model(z)
+            # ディスクリミネータの学習の際にジェネレータの学習が行われないように勾配情報を削除（本当に必要か不明・・・）
+            fake_img_tensor = fake_img.detach()
 
             # 生成画像をディスクリミネータに入力し，判定結果を取得
             out = dis_model(fake_img)
