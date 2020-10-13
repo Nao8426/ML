@@ -22,21 +22,17 @@ class Generator(nn.Module):
         self.fc = nn.Sequential(
             nn.Flatten(),
             nn.Linear(in_features=nz, out_features=outFC_C),
-            nn.BatchNorm1d(outFC_C),
             nn.ReLU(inplace=True)
         )
 
         self.main = nn.Sequential(
             nn.ConvTranspose2d(in_channels=self.inConv_C, out_channels=self.Conv1_C, kernel_size=4, stride=2, padding=1),
-            nn.BatchNorm2d(self.Conv1_C),
             nn.ReLU(inplace=True),
 
             nn.ConvTranspose2d(in_channels=self.Conv1_C, out_channels=self.Conv2_C, kernel_size=4, stride=2, padding=1),
-            nn.BatchNorm2d(self.Conv2_C),
             nn.ReLU(inplace=True),
 
             nn.ConvTranspose2d(in_channels=self.Conv2_C, out_channels=self.Conv3_C, kernel_size=4, stride=2, padding=1),
-            nn.BatchNorm2d(self.Conv3_C),
             nn.ReLU(inplace=True),
 
             nn.ConvTranspose2d(in_channels=self.Conv3_C, out_channels=channel, kernel_size=4, stride=2, padding=1),
@@ -66,7 +62,6 @@ class Discriminator(nn.Module):
 
         self.main = nn.Sequential(
             nn.Conv2d(in_channels=channel, out_channels=self.Conv1_C, kernel_size=4, stride=2, padding=1),
-            nn.BatchNorm2d(self.Conv1_C),
             nn.LeakyReLU(0.2, inplace=True),
 
             nn.Conv2d(in_channels=self.Conv1_C, out_channels=self.Conv2_C, kernel_size=4, stride=2, padding=1),
