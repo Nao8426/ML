@@ -6,3 +6,5 @@ util.py: 環境出力など，その他の自作関数．
 
 ########## 備考 ##########
 Batch Normalization をディスクリミネータだけに置くか，ジェネレータにも置くかなど，Batch Normalization の位置には諸説あるが，とりあえずディスクリミネータだけに置くのがよいっぽいので，とりあえずそれで実装してます．
+ジェネレータの出力層，ディスクリミネータの入力層にはBatch Normalization を置かない方がよい（学習が不安定になる）らしい．
+Batch Normalization よりも　Spectral Normalization の方が学習が安定するかも．（検証したけど多分そう）
