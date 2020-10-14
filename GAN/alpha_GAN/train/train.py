@@ -178,7 +178,7 @@ def train(savedir, _list, root, epochs, batch_size, nz):
         # ロスのログを保存
         with open('{}/loss/log.txt'.format(savedir), mode='a') as f:
             f.write('##### Epoch {:03} #####\n'.format(epoch+1))
-            f.write('G: {}, D: {}, E: {}, CD: {}\n'.format(epoch+1, result['log_loss_G'][-1], result['log_loss_D'][-1], result['log_loss_E'][-1], result['log_loss_CD'][-1]))
+            f.write('G: {}, D: {}, E: {}, CD: {}\n'.format(result['log_loss_G'][-1], result['log_loss_D'][-1], result['log_loss_E'][-1], result['log_loss_CD'][-1]))
         
         # 定めた保存周期ごとにモデル，出力画像を保存する
         if (epoch+1)%10 == 0:
