@@ -149,7 +149,7 @@ def train(savedir, _list, root, epochs, batch_size, nz):
             loss_CD = myloss.cdis_loss(real_cy, zeros[:batch_size], rnd_cy, ones[:batch_size])
             log_loss_CD.append(loss_CD.item())
             # ディスクリミネータのロス計算
-            loss_D = myloss.gen_loss(real_y, ones[:batch_size], fake_y, rnd_y, zeros[:batch_size])
+            loss_D = myloss.dis_loss(real_y, ones[:batch_size], fake_y, rnd_y, zeros[:batch_size])
             log_loss_D.append(loss_D.item())
 
             # エンコーダの重み更新
