@@ -17,7 +17,7 @@ from util import plot, output_env
 # ジェネレータ，ディスクリミネータのロス
 class MyLoss():
     def __init__(self):
-        self.loss_BCE = nn.BCEWithLogitsLoss()
+        self.loss_BCE = nn.BCELoss()
 
     def gen_loss(self, x, y):
         return self.loss_BCE(x, y)
