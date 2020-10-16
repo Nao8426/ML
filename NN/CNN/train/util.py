@@ -32,7 +32,7 @@ def evaluate(model, test_loader, batch_size):
         data_num = len(test_loader.dataset)  # データの総数
         acc = correct / data_num * 100 # 精度
 
-        print('Accuracy for test dataset: {}/{} ({:.1f}%)'.format(correct, data_num, acc))
+        print('Accuracy for test dataset: {}/{} ({:.2f}%)'.format(correct, data_num, acc))
 
     model.train()
 
