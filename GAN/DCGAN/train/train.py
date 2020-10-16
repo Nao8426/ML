@@ -107,18 +107,13 @@ def train(savedir, _list, root, epochs, batch_size, nz):
 
             # ジェネレータに入力
             fake_img = gen_model(z)
-            # 勾配情報を削除
-            fake_img_tensor = fake_img.detach()
-
-            # 生成画像をディスクリミネータに入力し，判定結果を取得
-            out = dis_model(fake_img_tensor)
 
             # ディスクリミネータに真正画像と生成画像を入力
             real_out = dis_model(real_img)
-            fake_out = dis_model(fake_img_tensor)
+            fake_out = dis_model(fake_img)
 
             # ジェネレータのロス計算
-            loss_G = myloss.gen_loss(out, ones[:batch_size])
+            loss_G = myloss.gen_loss(fake_out, ones[:batch_size])
             log_loss_G.append(loss_G.item())
             # ディスクリミネータのロス計算
             loss_D = myloss.dis_loss(real_out, ones[:batch_size], fake_out, zeros[:batch_size])
