@@ -111,7 +111,7 @@ def train(savedir, _list, root, epochs, batch_size, nz):
             fake_img_tensor = fake_img.detach()
 
             # 生成画像をディスクリミネータに入力し，判定結果を取得
-            out = dis_model(fake_img)
+            out = dis_model(fake_img_tensor)
 
             # ディスクリミネータに真正画像と生成画像を入力
             real_out = dis_model(real_img)
@@ -149,7 +149,10 @@ def train(savedir, _list, root, epochs, batch_size, nz):
             torch.save(dis_model.module.state_dict(), '{}/model/D_model_{}.pth'.format(savedir, epoch+1))
 
             gen_model.eval()
-            fake_img_test = gen_model(z0)
+            
+            # メモリ節約のためパラメータの保存は止める（テスト時にパラメータの保存は不要）
+            with torch.no_grad():
+                fake_img_test = gen_model(z0)
 
             # ジェネレータの出力画像を保存
             torchvision.utils.save_image(fake_img_test[:batch_size], "{}/generating_image/epoch_{:03}.png".format(savedir, epoch+1))
