@@ -36,7 +36,7 @@ class Generator(nn.Module):
             nn.ReLU(inplace=True),
 
             nn.ConvTranspose2d(in_channels=self.Conv3_C, out_channels=channel, kernel_size=4, stride=2, padding=1),
-            nn.Sigmoid()
+            nn.Tanh()
         )
 
     # 順伝播
