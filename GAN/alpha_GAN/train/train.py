@@ -127,9 +127,6 @@ def train(savedir, _list, root, epochs, batch_size, nz):
             # 特徴ベクトルをジェネレータに入力し，画像を生成
             fake_img = gen_model(real_z)
             rnd_img = gen_model(rnd_z)
-            # 勾配情報を削除
-            fake_img_tensor = fake_img.detach()
-            rnd_img_tensor = rnd_img.detach()
 
             # 特徴ベクトルをコードディスクリミネータに入力し，判定結果を取得
             real_cy = cdis_model(real_z)
@@ -137,8 +134,8 @@ def train(savedir, _list, root, epochs, batch_size, nz):
 
             # 真正画像および生成画像をディスクリミネータに入力し，判定結果を取得
             real_y = dis_model(real_img)
-            fake_y = dis_model(fake_img_tensor)
-            rnd_y = dis_model(rnd_img_tensor)
+            fake_y = dis_model(fake_img)
+            rnd_y = dis_model(rnd_img)
 
             # エンコーダのロス計算
             loss_E = myloss.enc_loss(real_img, fake_img, real_cy, ones[:batch_size], 1.0)
@@ -193,7 +190,7 @@ def train(savedir, _list, root, epochs, batch_size, nz):
             rnd_img_test = gen_model(z0)
 
             # ジェネレータの出力画像を保存
-            torchvision.utils.save_image(fake_img_tensor[:batch_size], "{}/generating_image/epoch_{:03}.png".format(savedir, epoch+1))
+            torchvision.utils.save_image(fake_img[:batch_size], "{}/generating_image/epoch_{:03}.png".format(savedir, epoch+1))
             torchvision.utils.save_image(rnd_img_test[:batch_size], "{}/generating_image_rnd/epoch_{:03}.png".format(savedir, epoch+1))
 
             gen_model.train()
@@ -213,7 +210,7 @@ def train(savedir, _list, root, epochs, batch_size, nz):
         gen_model.eval()
         rnd_img_test = gen_model(z0)
 
-        torchvision.utils.save_image(fake_img_tensor[:batch_size], "{}/generating_image/epoch_{:03}.png".format(savedir, epoch+1))
+        torchvision.utils.save_image(fake_img[:batch_size], "{}/generating_image/epoch_{:03}.png".format(savedir, epoch+1))
         torchvision.utils.save_image(rnd_img_test[:batch_size], "{}/generating_image_rnd/epoch_{:03}.png".format(savedir, epoch+1))
 
         x = np.linspace(1, epoch+1, epoch+1, dtype='int')
