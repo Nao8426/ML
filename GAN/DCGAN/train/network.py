@@ -77,7 +77,8 @@ class Discriminator(nn.Module):
             nn.LeakyReLU(0.2, inplace=True),
 
             nn.Flatten(),
-            nn.Linear(in_features=inFC_C, out_features=1)
+            nn.Linear(in_features=inFC_C, out_features=1),
+            nn.Sigmoid()
         )
 
     def forward(self, x):
