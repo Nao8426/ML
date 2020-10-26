@@ -187,7 +187,10 @@ def train(savedir, _list, root, epochs, batch_size, nz):
             torch.save(cdis_model.module.state_dict(), '{}/model/CD_model_{}.pth'.format(savedir, epoch+1))
 
             gen_model.eval()
-            rnd_img_test = gen_model(z0)
+            
+            # メモリ節約のためパラメータの保存は止める（テスト時にパラメータの保存は不要）
+            with torch.no_grad():
+                rnd_img_test = gen_model(z0)
 
             # ジェネレータの出力画像を保存
             torchvision.utils.save_image(fake_img[:batch_size], "{}/generating_image/epoch_{:03}.png".format(savedir, epoch+1))
@@ -208,7 +211,9 @@ def train(savedir, _list, root, epochs, batch_size, nz):
         torch.save(cdis_model.module.state_dict(), '{}/model/CD_model_{}.pth'.format(savedir, epoch+1))
 
         gen_model.eval()
-        rnd_img_test = gen_model(z0)
+        
+        with torch.no_grad():
+            rnd_img_test = gen_model(z0)
 
         torchvision.utils.save_image(fake_img[:batch_size], "{}/generating_image/epoch_{:03}.png".format(savedir, epoch+1))
         torchvision.utils.save_image(rnd_img_test[:batch_size], "{}/generating_image_rnd/epoch_{:03}.png".format(savedir, epoch+1))
