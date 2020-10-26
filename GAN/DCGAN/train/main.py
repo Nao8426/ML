@@ -7,8 +7,8 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 
 # savedir: 保存先のディレクトリのパス
-# _list: 使用データセットのリストのパス
-# root: データセットまでのパス
+# _list: 使用データセットのパスのリストのパス
+# root: データセットまでのパス（_list内のパスの前に付く部分）
 savedir = '../progress/tmp'
 _list = '../imagelist/tmp.csv'
 root = '../dataset'
