@@ -61,18 +61,18 @@ class Discriminator(nn.Module):
         super().__init__()
 
         self.main = nn.Sequential(
-            nn.Conv2d(in_channels=channel, out_channels=self.Conv1_C, kernel_size=4, stride=2, padding=1),
+            nn.Conv2d(in_channels=channel, out_channels=self.Conv1_C, kernel_size=3, stride=2, padding=1),
             nn.LeakyReLU(0.2, inplace=True),
 
-            nn.Conv2d(in_channels=self.Conv1_C, out_channels=self.Conv2_C, kernel_size=4, stride=2, padding=1),
+            nn.Conv2d(in_channels=self.Conv1_C, out_channels=self.Conv2_C, kernel_size=3, stride=2, padding=1),
             nn.BatchNorm2d(self.Conv2_C),
             nn.LeakyReLU(0.2, inplace=True),
 
-            nn.Conv2d(in_channels=self.Conv2_C, out_channels=self.Conv3_C, kernel_size=4, stride=2, padding=1),
+            nn.Conv2d(in_channels=self.Conv2_C, out_channels=self.Conv3_C, kernel_size=3, stride=2, padding=1),
             nn.BatchNorm2d(self.Conv3_C),
             nn.LeakyReLU(0.2, inplace=True),
 
-            nn.Conv2d(in_channels=self.Conv3_C, out_channels=self.Conv4_C, kernel_size=4, stride=2, padding=1),
+            nn.Conv2d(in_channels=self.Conv3_C, out_channels=self.Conv4_C, kernel_size=3, stride=2, padding=1),
             nn.BatchNorm2d(self.Conv4_C),
             nn.LeakyReLU(0.2, inplace=True),
 
