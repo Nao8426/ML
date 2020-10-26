@@ -165,7 +165,9 @@ def train(savedir, _list, root, epochs, batch_size, nz):
         torch.save(dis_model.module.state_dict(), '{}/model/D_model_{}.pth'.format(savedir, epoch+1))
 
         gen_model.eval()
-        fake_img_test = gen_model(z0)
+        
+        with torch.no_grad():
+            fake_img_test = gen_model(z0)
 
         torchvision.utils.save_image(fake_img_test[:batch_size], "{}/generating_image/epoch_{:03}.png".format(savedir, epoch+1))
 
