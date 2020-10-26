@@ -195,7 +195,7 @@ class Encoder(nn.Module):
 # コードディスクリミネータの構造
 class CodeDiscriminator(nn.Module):
     def __init__(self, nz):    
-        C = 512
+        C = 1024
         super().__init__()
         
         self.main = nn.Sequential(
