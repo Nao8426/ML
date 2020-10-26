@@ -121,7 +121,7 @@ def train(savedir, _list, root, epochs, batch_size, nz):
 
             # ジェネレータの重み更新
             gen_para.zero_grad()
-            loss_G.backward()
+            loss_G.backward(retain_graph=True)
             gen_para.step()
             # ディスクリミネータの重み更新
             dis_para.zero_grad()
