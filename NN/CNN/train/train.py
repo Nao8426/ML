@@ -17,19 +17,19 @@ from util import evaluate, plot, output_env
 # ロスの計算
 class MyLoss():
     def __init__(self):
-        self.loss_CEL = nn.CrossEntropyLoss()
+        self.CEL_loss = nn.CrossEntropyLoss()
 
     def loss(self, x, y):
-        return self.loss_CEL(x, y)
+        return self.CEL_loss(x, y)
 
 
 # 学習用関数
 def train(savedir, train_list, test_list, root, epochs, batch_size):
-    # Adam設定(default: lr=0.001, betas=(0.9, 0.999), weight_decay=0) 
-    opt_para = {'lr': 0.001, 'betas': (0.9, 0.999), 'weight_decay': 0}
-
     # 入力画像のチャンネル数
     channel = 1
+
+    # Adam設定(default: lr=0.001, betas=(0.9, 0.999), weight_decay=0) 
+    opt_para = {'lr': 0.001, 'betas': (0.9, 0.999), 'weight_decay': 0}
 
     device = 'cuda'
 
