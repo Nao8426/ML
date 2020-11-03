@@ -10,7 +10,7 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
 # _list: 使用データセットのパスのリストのパス
 # root: データセットまでのパス（_list内のパスの前に付く部分）
 savedir = '../progress/tmp'
-_list = '../imagelist/tmp.csv'
+_list = '../imagelist/train.csv'
 root = '../dataset'
 
 # コマンドライン引数のパース

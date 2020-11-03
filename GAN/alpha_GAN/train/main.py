@@ -11,7 +11,7 @@ savedir = '../progress/tmp'
 # 使用データセットのリストのパス
 _list = '../imagelist/train.csv'
 # データセットまでのパス
-root = '../dataset/train'
+root = '../dataset'
 
 # コマンドライン引数のパース
 parser = argparse.ArgumentParser(description='alpha Generative Adversarial Net')

@@ -12,8 +12,7 @@ savedir = '../progress/tmp'
 train_list = '../imagelist/train.csv'
 test_list = '../imagelist/test.csv'
 # データセットまでのパス
-root_train = '../dataset/train'
-root_test = '../dataset/test'
+root = '../dataset'
 
 # コマンドライン引数のパース
 parser = argparse.ArgumentParser(description='Convolutional Neural Network')
@@ -36,4 +35,4 @@ print('Minibatch size : {}'.format(BATCH_SIZE))
 os.environ['CUDA_DEVICE_ORDER'] = "PCI_BUS_ID"
 os.environ['CUDA_VISIBLE_DEVICES'] = '{}'.format(GPU_ID)
 
-train(savedir, train_list, test_list, root_train, root_test, EPOCHS, BATCH_SIZE)
+train(savedir, train_list, test_list, root, EPOCHS, BATCH_SIZE)

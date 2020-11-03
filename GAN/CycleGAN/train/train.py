@@ -44,7 +44,7 @@ class Trans():
         return self.norm(image)
 
 
-def train(savedir, list_A, list_B, test_list_A, test_list_B, root, epochs, batch_size):
+def train(savedir, train_list_A, train_list_B, test_list_A, test_list_B, root, epochs, batch_size):
     # 画像のチャンネル数
     channel = 1
 
@@ -87,8 +87,8 @@ def train(savedir, list_A, list_B, test_list_A, test_list_B, root, epochs, batch
     result['D_A_log_loss'] = []
     result['D_B_log_loss'] = []
 
-    df_A = pd.read_csv(list_A, usecols=['Path'])
-    df_B = pd.read_csv(list_B, usecols=['Path'])
+    df_A = pd.read_csv(train_list_A, usecols=['Path'])
+    df_B = pd.read_csv(train_list_B, usecols=['Path'])
     df_test_A = pd.read_csv(test_list_A, usecols=['Path'])
     df_test_A = df_test_A.sample(frac=1)
     df_test_B = pd.read_csv(test_list_B, usecols=['Path'])

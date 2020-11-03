@@ -9,7 +9,7 @@ from PIL import Image
 from torch import nn
 from tqdm import tqdm
 # 自作モジュール
-from load import LoadDataset
+from load import LoadDataset, Trans
 from network import AutoEncoder
 from util import plot, output_env
 
@@ -21,15 +21,6 @@ class MyLoss():
 
     def loss(self, x, y):
         return self.loss_MSE(x, y)
-
-
-# データセットに対する処理（正規化など）
-class Trans():
-    def __init__(self):
-        self.norm = torchvision.transforms.Compose([torchvision.transforms.ToTensor(), torchvision.transforms.Normalize((0.5,), (0.5,))])
-
-    def __call__(self, image):
-        return self.norm(image)
 
 
 def train(savedir, _list, root, epochs, batch_size):
@@ -57,8 +48,7 @@ def train(savedir, _list, root, epochs, batch_size):
 
     check_img = Image.open('{}/{}'.format(root, img_id[0][0]))
     check_img = check_img.convert('L')
-    check_img = np.array(check_img)
-    height, width = check_img.shape
+    width, height = check_img.size
 
     myloss = MyLoss()
 

@@ -9,7 +9,7 @@ from PIL import Image
 from torch import nn
 from tqdm import tqdm
 # 自作モジュール
-from load import LoadDataset
+from load import LoadDataset, Trans
 from network import Generator, Discriminator, Encoder, CodeDiscriminator
 from util import plot, output_env
 
@@ -17,40 +17,34 @@ from util import plot, output_env
 # 各モデルのロス
 class MyLoss():
     def __init__(self):
-        self.loss_BCE = nn.BCELoss()
-        self.loss_L1 = nn.L1Loss()
+        self.BCE_loss = nn.BCELoss()
+        self.L1_loss = nn.L1Loss()
 
-    def gen_loss(self, x, y, p, q, r, alpha=1.0):
-        return self.loss_L1(x, y) + alpha*(self.loss_BCE(p, r)/2 + self.loss_BCE(q, r)/2)
+    def G_loss(self, x, y, p, q, r, alpha=1.0):
+        return self.L1_loss(x, y) + alpha*(self.BCE_loss(p, r)/2 + self.BCE_loss(q, r)/2)
 
-    def dis_loss(self, x, y, p, q, r):
-        return self.loss_BCE(x, y) + self.loss_BCE(p, r)/2 + self.loss_BCE(q, r)/2
+    def D_loss(self, x, y, p, q, r):
+        return self.BCE_loss(x, y) + self.BCE_loss(p, r)/2 + self.BCE_loss(q, r)/2
 
-    def enc_loss(self, x, y, p, q, alpha=1.0):
-        return self.loss_L1(x, y) + alpha*self.loss_BCE(p, q)
+    def E_loss(self, x, y, p, q, alpha=1.0):
+        return self.L1_loss(x, y) + alpha*self.BCE_loss(p, q)
 
-    def cdis_loss(self, x, y, p, q):
-        return self.loss_BCE(x, y) + self.loss_BCE(p, q)
-
-
-# データセットに対する処理（正規化など）
-class Trans():
-    def __init__(self):
-        self.norm = torchvision.transforms.Compose([torchvision.transforms.ToTensor(), torchvision.transforms.Normalize((0.5,), (0.5,))])
-
-    def __call__(self, image):
-        return self.norm(image)
+    def CD_loss(self, x, y, p, q):
+        return self.BCE_loss(x, y) + self.BCE_loss(p, q)
 
 
 def train(savedir, _list, root, epochs, batch_size, nz):
+    # 画像のチャンネル数
+    channel = 1
+
     # ジェネレータのAdam設定(default: lr=0.001, betas=(0.9, 0.999), weight_decay=0) 
-    opt_para_G = {'lr': 0.0002, 'betas': (0.5, 0.9), 'weight_decay': 0}
+    G_opt_para = {'lr': 0.0002, 'betas': (0.5, 0.9), 'weight_decay': 0}
     # ディスクリミネータのAdam設定
-    opt_para_D = {'lr': 0.0002, 'betas': (0.5, 0.9), 'weight_decay': 0}
+    D_opt_para = {'lr': 0.0002, 'betas': (0.5, 0.9), 'weight_decay': 0}
     # エンコーダのAdam設定
-    opt_para_E = {'lr': 0.0002, 'betas': (0.5, 0.9), 'weight_decay': 0}
+    E_opt_para = {'lr': 0.0002, 'betas': (0.5, 0.9), 'weight_decay': 0}
     # コードディスクリミネータのAdam設定
-    opt_para_CD = {'lr': 0.0002, 'betas': (0.5, 0.9), 'weight_decay': 0}
+    CD_opt_para = {'lr': 0.0002, 'betas': (0.5, 0.9), 'weight_decay': 0}
 
     device = 'cuda'
 
@@ -76,18 +70,17 @@ def train(savedir, _list, root, epochs, batch_size, nz):
 
     check_img = Image.open('{}/{}'.format(root, img_id[0][0]))
     check_img = check_img.convert('L')
-    check_img = np.array(check_img)
-    height, width = check_img.shape
+    width, height = check_img.size
 
-    gen_model, dis_model, enc_model, cdis_model = Generator(nz, width, height, 1), Discriminator(width, height, 1), Encoder(nz, width, height, 1), CodeDiscriminator(nz)
-    gen_model, dis_model, enc_model, cdis_model = nn.DataParallel(gen_model), nn.DataParallel(dis_model), nn.DataParallel(enc_model), nn.DataParallel(cdis_model)
-    gen_model, dis_model, enc_model, cdis_model = gen_model.to(device), dis_model.to(device), enc_model.to(device), cdis_model.to(device)
+    G_model, D_model, E_model, CD_model = Generator(nz, width, height, channel), Discriminator(width, height, channel), Encoder(nz, width, height, channel), CodeDiscriminator(nz)
+    G_model, D_model, E_model, CD_model = nn.DataParallel(G_model), nn.DataParallel(D_model), nn.DataParallel(E_model), nn.DataParallel(CD_model)
+    G_model, D_model, E_model, CD_model = G_model.to(device), D_model.to(device), E_model.to(device), CD_model.to(device)
 
     # 最適化アルゴリズムの設定
-    gen_para = torch.optim.Adam(gen_model.parameters(), lr=opt_para_G['lr'], betas=opt_para_G['betas'], weight_decay=opt_para_G['weight_decay'])
-    dis_para = torch.optim.Adam(dis_model.parameters(), lr=opt_para_D['lr'], betas=opt_para_D['betas'], weight_decay=opt_para_D['weight_decay'])
-    enc_para = torch.optim.Adam(enc_model.parameters(), lr=opt_para_E['lr'], betas=opt_para_E['betas'], weight_decay=opt_para_E['weight_decay'])
-    cdis_para = torch.optim.Adam(cdis_model.parameters(), lr=opt_para_CD['lr'], betas=opt_para_CD['betas'], weight_decay=opt_para_CD['weight_decay'])
+    G_para = torch.optim.Adam(G_model.parameters(), lr=G_opt_para['lr'], betas=G_opt_para['betas'], weight_decay=G_opt_para['weight_decay'])
+    D_para = torch.optim.Adam(D_model.parameters(), lr=D_opt_para['lr'], betas=D_opt_para['betas'], weight_decay=D_opt_para['weight_decay'])
+    E_para = torch.optim.Adam(E_model.parameters(), lr=E_opt_para['lr'], betas=E_opt_para['betas'], weight_decay=E_opt_para['weight_decay'])
+    CD_para = torch.optim.Adam(CD_model.parameters(), lr=CD_opt_para['lr'], betas=CD_opt_para['betas'], weight_decay=CD_opt_para['weight_decay'])
 
     # ロスを計算するためのラベル変数
     ones = torch.ones(512).to(device)
@@ -95,15 +88,15 @@ def train(savedir, _list, root, epochs, batch_size, nz):
 
     # ロスの推移を保存するためのリストを確保
     result = {}
-    result['log_loss_G'] = []
-    result['log_loss_D'] = []
-    result['log_loss_E'] = []
-    result['log_loss_CD'] = []
+    result['G_log_loss'] = []
+    result['D_log_loss'] = []
+    result['E_log_loss'] = []
+    result['CD_log_loss'] = []
 
     dataset = LoadDataset(df, root, transform=Trans())
     train_loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, drop_last=True)
 
-    output_env('{}/env.txt'.format(savedir), batch_size, nz, opt_para_G, opt_para_D, opt_para_E, opt_para_CD, gen_model, dis_model, enc_model, cdis_model)
+    output_env('{}/env.txt'.format(savedir), batch_size, nz, G_opt_para, D_opt_para, E_opt_para, CD_opt_para, G_model, D_model, E_model, CD_model)
 
     # テスト用の一定乱数
     z0 = torch.randn(batch_size, nz, 1, 1)
@@ -111,7 +104,7 @@ def train(savedir, _list, root, epochs, batch_size, nz):
     for epoch in range(epochs):
         print('########## epoch : {}/{} ##########'.format(epoch+1, epochs))
 
-        log_loss_G, log_loss_D, log_loss_E, log_loss_CD = [], [], [], []
+        G_log_loss, D_log_loss, E_log_loss, CD_log_loss = [], [], [], []
 
         for real_img in tqdm(train_loader):
             # 入力の乱数を作成
@@ -122,101 +115,101 @@ def train(savedir, _list, root, epochs, batch_size, nz):
             rnd_z = rnd_z.to(device)
 
             # 真正画像をエンコーダに入力し，特徴ベクトルを取得
-            real_z = enc_model(real_img)
+            real_z = E_model(real_img)
 
             # 特徴ベクトルをジェネレータに入力し，画像を生成
-            fake_img = gen_model(real_z)
-            rnd_img = gen_model(rnd_z)
+            fake_img = G_model(real_z)
+            rnd_img = G_model(rnd_z)
 
             # 特徴ベクトルをコードディスクリミネータに入力し，判定結果を取得
-            real_cy = cdis_model(real_z)
-            rnd_cy = cdis_model(rnd_z)
+            real_cy = CD_model(real_z)
+            rnd_cy = CD_model(rnd_z)
 
             # 真正画像および生成画像をディスクリミネータに入力し，判定結果を取得
-            real_y = dis_model(real_img)
-            fake_y = dis_model(fake_img)
-            rnd_y = dis_model(rnd_img)
+            real_y = D_model(real_img)
+            fake_y = D_model(fake_img)
+            rnd_y = D_model(rnd_img)
 
             # エンコーダのロス計算
-            loss_E = myloss.enc_loss(real_img, fake_img, real_cy, ones[:batch_size], 1.0)
-            log_loss_E.append(loss_E.item())
+            E_loss = myloss.E_loss(real_img, fake_img, real_cy, ones[:batch_size], 1.0)
+            E_log_loss.append(E_loss.item())
             # ジェネレータのロス計算
-            loss_G = myloss.gen_loss(real_img, fake_img, fake_y, rnd_y, ones[:batch_size], 1.0)
-            log_loss_G.append(loss_G.item())
+            G_loss = myloss.G_loss(real_img, fake_img, fake_y, rnd_y, ones[:batch_size], 1.0)
+            G_log_loss.append(G_loss.item())
             # コードディスクリミネータのロス計算
-            loss_CD = myloss.cdis_loss(real_cy, zeros[:batch_size], rnd_cy, ones[:batch_size])
-            log_loss_CD.append(loss_CD.item())
+            CD_loss = myloss.CD_loss(real_cy, zeros[:batch_size], rnd_cy, ones[:batch_size])
+            CD_log_loss.append(CD_loss.item())
             # ディスクリミネータのロス計算
-            loss_D = myloss.dis_loss(real_y, ones[:batch_size], fake_y, rnd_y, zeros[:batch_size])
-            log_loss_D.append(loss_D.item())
+            D_loss = myloss.D_loss(real_y, ones[:batch_size], fake_y, rnd_y, zeros[:batch_size])
+            D_log_loss.append(D_loss.item())
 
             # エンコーダの重み更新
-            enc_para.zero_grad()
-            loss_E.backward(retain_graph=True)
-            enc_para.step()
+            E_para.zero_grad()
+            E_loss.backward(retain_graph=True)
+            E_para.step()
             # ジェネレータの重み更新
-            gen_para.zero_grad()
-            loss_G.backward(retain_graph=True)
-            gen_para.step()
+            G_para.zero_grad()
+            G_loss.backward(retain_graph=True)
+            G_para.step()
             # コードディスクリミネータの重み更新
-            cdis_para.zero_grad()
-            loss_CD.backward(retain_graph=True)
-            cdis_para.step()
+            CD_para.zero_grad()
+            CD_loss.backward(retain_graph=True)
+            CD_para.step()
             # ディスクリミネータの重み更新
-            dis_para.zero_grad()
-            loss_D.backward()
-            dis_para.step()
+            D_para.zero_grad()
+            D_loss.backward()
+            D_para.step()
 
-        result['log_loss_G'].append(statistics.mean(log_loss_G))
-        result['log_loss_D'].append(statistics.mean(log_loss_D))
-        result['log_loss_E'].append(statistics.mean(log_loss_E))
-        result['log_loss_CD'].append(statistics.mean(log_loss_CD))
-        print('loss_G = {} , loss_D = {} , loss_E = {} , loss_CD = {}'.format(result['log_loss_G'][-1], result['log_loss_D'][-1], result['log_loss_E'][-1], result['log_loss_CD'][-1]))
+        result['G_log_loss'].append(statistics.mean(G_log_loss))
+        result['D_log_loss'].append(statistics.mean(D_log_loss))
+        result['E_log_loss'].append(statistics.mean(E_log_loss))
+        result['CD_log_loss'].append(statistics.mean(CD_log_loss))
+        print('G_loss = {} , D_loss = {} , E_loss = {} , CD_loss = {}'.format(result['G_log_loss'][-1], result['D_log_loss'][-1], result['E_log_loss'][-1], result['CD_log_loss'][-1]))
 
         # ロスのログを保存
         with open('{}/loss/log.txt'.format(savedir), mode='a') as f:
             f.write('##### Epoch {:03} #####\n'.format(epoch+1))
-            f.write('G: {}, D: {}, E: {}, CD: {}\n'.format(result['log_loss_G'][-1], result['log_loss_D'][-1], result['log_loss_E'][-1], result['log_loss_CD'][-1]))
+            f.write('G: {}, D: {}, E: {}, CD: {}\n'.format(result['G_log_loss'][-1], result['D_log_loss'][-1], result['E_log_loss'][-1], result['CD_log_loss'][-1]))
         
         # 定めた保存周期ごとにモデル，出力画像を保存する
         if (epoch+1)%10 == 0:
             # モデルの保存
-            torch.save(gen_model.module.state_dict(), '{}/model/G_model_{}.pth'.format(savedir, epoch+1))
-            torch.save(dis_model.module.state_dict(), '{}/model/D_model_{}.pth'.format(savedir, epoch+1))
-            torch.save(enc_model.module.state_dict(), '{}/model/E_model_{}.pth'.format(savedir, epoch+1))
-            torch.save(cdis_model.module.state_dict(), '{}/model/CD_model_{}.pth'.format(savedir, epoch+1))
+            torch.save(G_model.module.state_dict(), '{}/model/G_model_{}.pth'.format(savedir, epoch+1))
+            torch.save(D_model.module.state_dict(), '{}/model/D_model_{}.pth'.format(savedir, epoch+1))
+            torch.save(E_model.module.state_dict(), '{}/model/E_model_{}.pth'.format(savedir, epoch+1))
+            torch.save(CD_model.module.state_dict(), '{}/model/CD_model_{}.pth'.format(savedir, epoch+1))
 
-            gen_model.eval()
+            G_model.eval()
             
             # メモリ節約のためパラメータの保存は止める（テスト時にパラメータの保存は不要）
             with torch.no_grad():
-                rnd_img_test = gen_model(z0)
+                rnd_img_test = G_model(z0)
 
             # ジェネレータの出力画像を保存
             torchvision.utils.save_image(fake_img[:batch_size], "{}/generating_image/epoch_{:03}.png".format(savedir, epoch+1))
             torchvision.utils.save_image(rnd_img_test[:batch_size], "{}/generating_image_rnd/epoch_{:03}.png".format(savedir, epoch+1))
 
-            gen_model.train()
+            G_model.train()
 
         # 定めた保存周期ごとにロスを保存する
         if (epoch+1)%50 == 0:
             x = np.linspace(1, epoch+1, epoch+1, dtype='int')
-            plot(result['log_loss_G'], result['log_loss_D'], result['log_loss_E'], result['log_loss_CD'], x, savedir)
+            plot(result['G_log_loss'], result['D_log_loss'], result['E_log_loss'], result['CD_log_loss'], x, savedir)
 
     # 最後のエポックが保存周期でない場合に，保存する
     if (epoch+1)%10 != 0 and epoch+1 == epochs:
-        torch.save(gen_model.module.state_dict(), '{}/model/G_model_{}.pth'.format(savedir, epoch+1))
-        torch.save(dis_model.module.state_dict(), '{}/model/D_model_{}.pth'.format(savedir, epoch+1))
-        torch.save(enc_model.module.state_dict(), '{}/model/E_model_{}.pth'.format(savedir, epoch+1))
-        torch.save(cdis_model.module.state_dict(), '{}/model/CD_model_{}.pth'.format(savedir, epoch+1))
+        torch.save(G_model.module.state_dict(), '{}/model/G_model_{}.pth'.format(savedir, epoch+1))
+        torch.save(D_model.module.state_dict(), '{}/model/D_model_{}.pth'.format(savedir, epoch+1))
+        torch.save(E_model.module.state_dict(), '{}/model/E_model_{}.pth'.format(savedir, epoch+1))
+        torch.save(CD_model.module.state_dict(), '{}/model/CD_model_{}.pth'.format(savedir, epoch+1))
 
-        gen_model.eval()
+        G_model.eval()
         
         with torch.no_grad():
-            rnd_img_test = gen_model(z0)
+            rnd_img_test = G_model(z0)
 
         torchvision.utils.save_image(fake_img[:batch_size], "{}/generating_image/epoch_{:03}.png".format(savedir, epoch+1))
         torchvision.utils.save_image(rnd_img_test[:batch_size], "{}/generating_image_rnd/epoch_{:03}.png".format(savedir, epoch+1))
 
         x = np.linspace(1, epoch+1, epoch+1, dtype='int')
-        plot(result['log_loss_G'], result['log_loss_D'], result['log_loss_E'], result['log_loss_CD'], x, savedir)
+        plot(result['G_log_loss'], result['D_log_loss'], result['E_log_loss'], result['CD_log_loss'], x, savedir)

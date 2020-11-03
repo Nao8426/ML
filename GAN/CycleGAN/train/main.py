@@ -11,10 +11,10 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
 # list_B: 使用データセットのパスのリストのパス
 # root: データセットまでのパス（リスト内のパスの前に付く部分）
 savedir = '../progress/tmp'
-list_A = '../imagelist/tmp_A.csv'
-list_B = '../imagelist/tmp_B.csv'
-test_list_A = '../imagelist/tmp_test_A.csv'
-test_list_B = '../imagelist/tmp_test_B.csv'
+train_list_A = '../imagelist/train_A.csv'
+train_list_B = '../imagelist/train_B.csv'
+test_list_A = '../imagelist/test_A.csv'
+test_list_B = '../imagelist/test_B.csv'
 root = '../dataset'
 
 # コマンドライン引数のパース
@@ -38,4 +38,4 @@ print('Minibatch size: {}'.format(BATCH_SIZE))
 os.environ['CUDA_DEVICE_ORDER'] = "PCI_BUS_ID"
 os.environ['CUDA_VISIBLE_DEVICES'] = '{}'.format(GPU_ID)
 
-train(savedir, list_A, list_B, test_list_A, test_list_B, root, EPOCHS, BATCH_SIZE)
+train(savedir, train_list_A, train_list_B, test_list_A, test_list_B, root, EPOCHS, BATCH_SIZE)

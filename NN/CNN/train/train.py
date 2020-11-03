@@ -9,7 +9,7 @@ from PIL import Image
 from torch import nn
 from tqdm import tqdm
 # 自作モジュール
-from load import LoadDataset
+from load import LoadDataset, Trans
 from network import CNN
 from util import evaluate, plot, output_env
 
@@ -23,17 +23,8 @@ class MyLoss():
         return self.loss_CEL(x, y)
 
 
-# データセットに対する処理（正規化など）
-class Trans():
-    def __init__(self):
-        self.norm = torchvision.transforms.ToTensor()
-
-    def __call__(self, image):
-        return self.norm(image)
-
-
 # 学習用関数
-def train(savedir, train_list, test_list, root_train, root_test, epochs, batch_size):
+def train(savedir, train_list, test_list, root, epochs, batch_size):
     # Adam設定(default: lr=0.001, betas=(0.9, 0.999), weight_decay=0) 
     opt_para = {'lr': 0.001, 'betas': (0.9, 0.999), 'weight_decay': 0}
 
@@ -62,10 +53,9 @@ def train(savedir, train_list, test_list, root_train, root_test, epochs, batch_s
     df_test = pd.read_csv(test_list)
 
     img_id = df_train['Path'].values.tolist()
-    check_img = Image.open('{}/{}'.format(root_train, img_id[0]))
+    check_img = Image.open('{}/{}'.format(root, img_id[0]))
     check_img = check_img.convert('L')
-    check_img = np.array(check_img)
-    height, width = check_img.shape
+    width, height = check_img.size
 
     # モデルの読み込み
     model = CNN(width, height, channel)
@@ -79,9 +69,9 @@ def train(savedir, train_list, test_list, root_train, root_test, epochs, batch_s
     result = []
 
     # データセットのローダーを作成
-    train_dataset = LoadDataset(df_train, root_train, transform=Trans())
+    train_dataset = LoadDataset(df_train, root, transform=Trans())
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True, drop_last=True)
-    test_dataset = LoadDataset(df_test, root_test, transform=Trans())
+    test_dataset = LoadDataset(df_test, root, transform=Trans())
     test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=True, drop_last=True)
 
     # パラメータ設定，ネットワーク構造などの環境をテキストファイルで保存．
