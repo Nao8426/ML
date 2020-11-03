@@ -93,7 +93,7 @@ def train(savedir, _list, root, epochs, batch_size, nz):
     ones = torch.ones(512).to(device)
     zeros = torch.zeros(512).to(device)
 
-    # ロスの推移
+    # ロスの推移を保存するためのリストを確保
     result = {}
     result['log_loss_G'] = []
     result['log_loss_D'] = []
