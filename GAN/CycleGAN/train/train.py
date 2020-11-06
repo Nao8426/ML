@@ -26,7 +26,7 @@ class MyLoss():
         G_B2A_loss = self.MSE_loss(fake_pred_A, ones)
         cycle_A_loss = self.L1_loss(img_A, rec_img_A)
         cycle_B_loss = self.L1_loss(img_B, rec_img_B)
-        return G_A2B_loss + G_B2A_loss + alpha*cycle_A_loss + alpha*cycle_B_loss
+        return G_A2B_loss + G_B2A_loss + alpha*(cycle_A_loss + cycle_B_loss)
 
     def D_A_loss(self, real_pred_A, ones, fake_pred_A, zeros):
         return self.MSE_loss(real_pred_A, ones) + self.MSE_loss(fake_pred_A, zeros)
