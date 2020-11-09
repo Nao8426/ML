@@ -47,6 +47,9 @@ class Trans():
 def train(savedir, train_list_A, train_list_B, test_list_A, test_list_B, root, epochs, batch_size):
     # 画像のチャンネル数
     channel = 1
+    
+    # Adversarial LossとCycle Lossのバランスをとるパラメータ（Cycle Lossにかかる係数）
+    cycle_rate = 10.0
 
     # ジェネレータのAdam設定(default: lr=0.001, betas=(0.9, 0.999), weight_decay=0) 
     G_opt_para = {'lr': 0.0002, 'betas': (0.5, 0.9), 'weight_decay': 0}
@@ -126,7 +129,7 @@ def train(savedir, train_list_A, train_list_B, test_list_A, test_list_B, root, e
             fake_pred_B = D_B_model(fake_img_B)
 
             # ジェネレータのロス計算
-            G_loss = myloss.G_loss(fake_pred_A, fake_pred_B, torch.tensor(1.0).expand_as(fake_pred_A).to(device), img_A, img_B, rec_img_A, rec_img_B, alpha=10.0)
+            G_loss = myloss.G_loss(fake_pred_A, fake_pred_B, torch.tensor(1.0).expand_as(fake_pred_A).to(device), img_A, img_B, rec_img_A, rec_img_B, alpha=cycle_rate)
             G_log_loss.append(G_loss.item())
             # ディスクリミネータのロス計算
             D_A_loss = myloss.D_A_loss(real_pred_A, torch.tensor(1.0).expand_as(real_pred_A).to(device), fake_pred_A, torch.tensor(0.0).expand_as(fake_pred_A).to(device))
