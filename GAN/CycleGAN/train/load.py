@@ -1,6 +1,7 @@
 # データセットの読み込みとその際に実行する処理の設定
 import numpy as np
 import torch
+import torchvision
 from PIL import Image
 
 
