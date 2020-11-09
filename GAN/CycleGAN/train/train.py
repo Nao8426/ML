@@ -55,7 +55,6 @@ def train(savedir, train_list_A, train_list_B, test_list_A, test_list_B, root, e
     
     # LossにおけるCycle Lossの割合を決めるパラメータ（Cycle Lossにかかる係数）
     cycle_rate = 10.0
-    
     # LossにおけるIdentity Lossの割合を決めるパラメータ（Identity Lossにかかる係数）
     iden_rate = 0
 
