@@ -137,7 +137,7 @@ def train(savedir, train_list_A, train_list_B, test_list_A, test_list_B, root, e
             fake_pred_B = D_B_model(fake_img_B)
             
             # ジェネレータに出力画像と同一ドメインの画像を入力（恒等写像）
-            if identity_rate > 0:
+            if iden_rate > 0:
                 iden_img_A = G_B2A(img_A)
                 iden_img_B = G_A2B(img_B)
 
