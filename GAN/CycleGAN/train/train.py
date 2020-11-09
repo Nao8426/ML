@@ -137,9 +137,12 @@ def train(savedir, train_list_A, train_list_B, test_list_A, test_list_B, root, e
             fake_pred_B = D_B_model(fake_img_B)
             
             # ジェネレータに出力画像と同一ドメインの画像を入力（恒等写像）
-            if iden_rate > 0:
-                iden_img_A = G_B2A(img_A)
-                iden_img_B = G_A2B(img_B)
+            if iden_img == 0:
+                iden_img_A = None
+                iden_img_B = None
+            else:
+                iden_img_A = G_B2A_model(img_A)
+                iden_img_B = G_A2B_model(img_B)
 
             # ジェネレータのロス計算
             G_loss = myloss.G_loss(fake_pred_A, fake_pred_B, torch.tensor(1.0).expand_as(fake_pred_A).to(device), img_A, img_B, rec_img_A, rec_img_B, iden_img_A, iden_img_B, alpha=cycle_rate, beta=iden_rate)
