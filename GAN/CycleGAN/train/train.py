@@ -10,7 +10,7 @@ from PIL import Image
 from torch import nn
 from tqdm import tqdm
 # 自作モジュール
-from load import LoadDataset
+from load import LoadDataset, Trans
 from network import Generator, Discriminator
 from util import plot, output_env
 
