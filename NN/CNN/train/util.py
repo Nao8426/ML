@@ -15,8 +15,6 @@ def evaluate(model, test_loader, batch_size):
         correct = 0
 
         for img, label in test_loader:
-            img = img.float()
-            img = img / 255
             # 3次元テンソルを4次元テンソルに変換（1チャネルの情報を追加）
             batch, height, width = img.shape
             img = torch.reshape(img, (batch_size, 1, height, width))
