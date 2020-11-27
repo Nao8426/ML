@@ -19,11 +19,11 @@ class MyLoss():
     def __init__(self):
         self.BCE_loss = nn.BCELoss()
 
-    def G_loss(self, x, ones):
-        return self.BCE_loss(x, ones)
+    def G_loss(self, fake_out, ones):
+        return self.BCE_loss(fake_out, ones)
 
-    def D_loss(self, p, ones, r, zeros):
-        return self.BCE_loss(p, ones) + self.BCE_loss(r, zeros)
+    def D_loss(self, real_out, ones, fake_out, zeros):
+        return self.BCE_loss(real_out, ones) + self.BCE_loss(fake_out, zeros)
 
 
 def train(savedir, _list, root, epochs, batch_size, nz):
