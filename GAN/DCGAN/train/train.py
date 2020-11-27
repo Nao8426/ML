@@ -19,11 +19,11 @@ class MyLoss():
     def __init__(self):
         self.BCE_loss = nn.BCELoss()
 
-    def G_loss(self, x, y):
-        return self.BCE_loss(x, y)
+    def G_loss(self, x, ones):
+        return self.BCE_loss(x, ones)
 
-    def D_loss(self, p, q, r, s):
-        return self.BCE_loss(p, q) + self.BCE_loss(r, s)
+    def D_loss(self, p, ones, r, zeros):
+        return self.BCE_loss(p, ones) + self.BCE_loss(r, zeros)
 
 
 def train(savedir, _list, root, epochs, batch_size, nz):
@@ -68,10 +68,6 @@ def train(savedir, _list, root, epochs, batch_size, nz):
     G_para = torch.optim.Adam(G_model.parameters(), lr=G_opt_para['lr'], betas=G_opt_para['betas'], weight_decay=G_opt_para['weight_decay'])
     D_para = torch.optim.Adam(D_model.parameters(), lr=D_opt_para['lr'], betas=D_opt_para['betas'], weight_decay=D_opt_para['weight_decay'])
 
-    # ロスを計算するためのラベル変数
-    ones = torch.ones(512).to(device)
-    zeros = torch.zeros(512).to(device)
-
     # ロスの推移を保存するためのリストを確保
     result = {}
     result['G_log_loss'] = []
@@ -106,10 +102,10 @@ def train(savedir, _list, root, epochs, batch_size, nz):
             fake_out = D_model(fake_img)
 
             # ジェネレータのロス計算
-            G_loss = myloss.G_loss(fake_out, ones[:batch_size])
+            G_loss = myloss.G_loss(fake_out, torch.tensor(1.0).expand_as(fake_out).to(device))
             G_log_loss.append(G_loss.item())
             # ディスクリミネータのロス計算
-            D_loss = myloss.D_loss(real_out, ones[:batch_size], fake_out, zeros[:batch_size])
+            D_loss = myloss.D_loss(real_out, torch.tensor(1.0).expand_as(real_out).to(device), fake_out, torch.tensor(0.0).expand_as(fake_out).to(device))
             D_log_loss.append(D_loss.item())
 
             # ジェネレータの重み更新
