@@ -20,17 +20,17 @@ class MyLoss():
         self.BCE_loss = nn.BCELoss()
         self.L1_loss = nn.L1Loss()
 
-    def G_loss(self, x, y, p, q, r, alpha=1.0):
-        return self.L1_loss(x, y) + alpha*(self.BCE_loss(p, r)/2 + self.BCE_loss(q, r)/2)
+    def G_loss(self, real_img, fake_img, fake_y, rnd_y, ones, alpha=1.0):
+        return self.L1_loss(real_img, fake_img) + alpha*(self.BCE_loss(fake_y, ones)/2 + self.BCE_loss(rnd_y, ones)/2)
 
-    def D_loss(self, x, y, p, q, r):
-        return self.BCE_loss(x, y) + self.BCE_loss(p, r)/2 + self.BCE_loss(q, r)/2
+    def D_loss(self, real_y, ones, fake_y, rnd_y, zeros):
+        return self.BCE_loss(real_y, ones) + self.BCE_loss(fake_y, zeros)/2 + self.BCE_loss(rnd_y, zeros)/2
 
-    def E_loss(self, x, y, p, q, alpha=1.0):
-        return self.L1_loss(x, y) + alpha*self.BCE_loss(p, q)
+    def E_loss(self, real_img, fake_img, real_cy, ones, alpha=1.0):
+        return self.L1_loss(real_img, fake_img) + alpha*self.BCE_loss(real_cy, ones)
 
-    def CD_loss(self, x, y, p, q):
-        return self.BCE_loss(x, y) + self.BCE_loss(p, q)
+    def CD_loss(self, real_cy, zeros, rnd_cy, ones):
+        return self.BCE_loss(real_cy, zeros) + self.BCE_loss(rnd_cy, ones)
 
 
 def train(savedir, _list, root, epochs, batch_size, nz):
@@ -82,10 +82,6 @@ def train(savedir, _list, root, epochs, batch_size, nz):
     E_para = torch.optim.Adam(E_model.parameters(), lr=E_opt_para['lr'], betas=E_opt_para['betas'], weight_decay=E_opt_para['weight_decay'])
     CD_para = torch.optim.Adam(CD_model.parameters(), lr=CD_opt_para['lr'], betas=CD_opt_para['betas'], weight_decay=CD_opt_para['weight_decay'])
 
-    # ロスを計算するためのラベル変数
-    ones = torch.ones(512).to(device)
-    zeros = torch.zeros(512).to(device)
-
     # ロスの推移を保存するためのリストを確保
     result = {}
     result['G_log_loss'] = []
@@ -131,16 +127,16 @@ def train(savedir, _list, root, epochs, batch_size, nz):
             rnd_y = D_model(rnd_img)
 
             # エンコーダのロス計算
-            E_loss = myloss.E_loss(real_img, fake_img, real_cy, ones[:batch_size], 1.0)
+            E_loss = myloss.E_loss(real_img, fake_img, real_cy, torch.tensor(1.0).expand_as(real_cy).to(device), 1.0)
             E_log_loss.append(E_loss.item())
             # ジェネレータのロス計算
-            G_loss = myloss.G_loss(real_img, fake_img, fake_y, rnd_y, ones[:batch_size], 1.0)
+            G_loss = myloss.G_loss(real_img, fake_img, fake_y, rnd_y, torch.tensor(1.0).expand_as(fake_y).to(device), 1.0)
             G_log_loss.append(G_loss.item())
             # コードディスクリミネータのロス計算
-            CD_loss = myloss.CD_loss(real_cy, zeros[:batch_size], rnd_cy, ones[:batch_size])
+            CD_loss = myloss.CD_loss(real_cy, torch.tensor(0.0).expand_as(real_cy).to(device), rnd_cy, torch.tensor(1.0).expand_as(rnd_cy).to(device))
             CD_log_loss.append(CD_loss.item())
             # ディスクリミネータのロス計算
-            D_loss = myloss.D_loss(real_y, ones[:batch_size], fake_y, rnd_y, zeros[:batch_size])
+            D_loss = myloss.D_loss(real_y, torch.tensor(1.0).expand_as(real_y).to(device), fake_y, rnd_y, torch.tensor(0.0).expand_as(fake_y).to(device))
             D_log_loss.append(D_loss.item())
 
             # エンコーダの重み更新
