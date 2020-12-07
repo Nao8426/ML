@@ -53,7 +53,7 @@ class Decoder(nn.Module):
     def __init__(self, width, height, channel):
         self.W = width // (2**4)
         self.H = height // (2**4)
-        outFC_C = self.W * self.H * self.Conv1_C
+        outFC_C = self.W * self.H * self.inConv_C
 
         super().__init__()
         
