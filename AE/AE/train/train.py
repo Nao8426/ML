@@ -53,12 +53,12 @@ def train(savedir, _list, root, epochs, batch_size):
     myloss = MyLoss()
 
     # モデルの読み込み
-    ae_model = AutoEncoder(width, height, 1)
-    ae_model = nn.DataParallel(ae_model)
-    ae_model = ae_model.to(device)
+    model = AutoEncoder(width, height, 1)
+    model = nn.DataParallel(model)
+    model = model.to(device)
 
     # 最適化アルゴリズムの設定
-    para = torch.optim.Adam(ae_model.parameters(), lr=opt_para['lr'], betas=opt_para['betas'], weight_decay=opt_para['weight_decay'])
+    para = torch.optim.Adam(model.parameters(), lr=opt_para['lr'], betas=opt_para['betas'], weight_decay=opt_para['weight_decay'])
 
     # ロスの推移
     result = []
@@ -66,7 +66,7 @@ def train(savedir, _list, root, epochs, batch_size):
     dataset = LoadDataset(df, root, transform=Trans())
     train_loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, drop_last=True)
     
-    output_env('{}/env.txt'.format(savedir), batch_size, opt_para, ae_model)
+    output_env('{}/env.txt'.format(savedir), batch_size, opt_para, model)
 
     for epoch in range(epochs):
         print('########## epoch : {}/{} ##########'.format(epoch+1, epochs))
@@ -78,13 +78,9 @@ def train(savedir, _list, root, epochs, batch_size):
             real_img = real_img.to(device)
 
             # 真正画像をエンコーダに入力し，特徴ベクトルを取得
-            output = ae_model(real_img)
-
-            # デコーダの出力を保存
-            output_tensor = output.view(batch_size, 1, height, width).detach()
+            output = model(real_img)
 
             # ロス計算
-            real_img = real_img.view(-1, width*height)
             loss = myloss.loss(real_img, output)
             log_loss.append(loss.item())
 
@@ -103,10 +99,10 @@ def train(savedir, _list, root, epochs, batch_size):
         # 定めた保存周期ごとにモデル，出力画像を保存する
         if (epoch+1) % 10 == 0:
             # モデルの保存
-            torch.save(ae_model.module.state_dict(), '{}/model/model_{}.pth'.format(savedir, epoch+1))
+            torch.save(model.module.state_dict(), '{}/model/model_{}.pth'.format(savedir, epoch+1))
 
             # オートエンコーダの出力画像を保存
-            torchvision.utils.save_image(output_tensor[:batch_size], "{}/generating_image/epoch_{:03}.png".format(savedir, epoch+1))
+            torchvision.utils.save_image(output[:batch_size], "{}/generating_image/epoch_{:03}.png".format(savedir, epoch+1))
 
         # 定めた保存周期ごとにロスを保存する
         if (epoch+1) % 50 == 0:
@@ -115,9 +111,9 @@ def train(savedir, _list, root, epochs, batch_size):
 
     # 最後のエポックが保存周期でない場合に，保存する
     if (epoch+1)%10 != 0 and epoch+1 == epochs:
-        torch.save(ae_model.module.state_dict(), '{}/model/model_{}.pth'.format(savedir, epoch+1))
+        torch.save(model.module.state_dict(), '{}/model/model_{}.pth'.format(savedir, epoch+1))
 
-        torchvision.utils.save_image(output_tensor[:batch_size], "{}/generating_image/epoch_{:03}.png".format(savedir, epoch+1))
+        torchvision.utils.save_image(output[:batch_size], "{}/generating_image/epoch_{:03}.png".format(savedir, epoch+1))
 
         x = np.linspace(1, epoch+1, epoch+1, dtype='int')
         plot(result, x, savedir)

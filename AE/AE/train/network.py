@@ -4,31 +4,38 @@ from torch import nn
 
 # エンコーダの構造
 class Encoder(nn.Module):
-    FC1_C = 128
-    FC2_C = 64
-    FC3_C = 32
-    FC4_C = 16
+    Conv1_C = 64
+    Conv2_C = 128
+    Conv3_C = 256
+    Conv4_C = 512
+    FC_C = 64
 
     def __init__(self, width, height, channel):
-        inFC_C = width * height * channel
+        W = width // (2**4)
+        H = height // (2**4)
+        inFC_C = W * H * self.Conv4_C
 
         super().__init__()
 
         self.main = nn.Sequential(
+            nn.Conv2d(in_channels=channel, out_channels=self.Conv1_C, kernel_size=3, stride=2, padding=1),
+            nn.BatchNorm2d(self.Conv1_C),
+            nn.ReLU(inplace=True),
+
+            nn.Conv2d(in_channels=self.Conv1_C, out_channels=self.Conv2_C, kernel_size=3, stride=2, padding=1),
+            nn.BatchNorm2d(self.Conv2_C),
+            nn.ReLU(inplace=True),
+
+            nn.Conv2d(in_channels=self.Conv2_C, out_channels=self.Conv3_C, kernel_size=3, stride=2, padding=1),
+            nn.BatchNorm2d(self.Conv3_C),
+            nn.ReLU(inplace=True),
+
+            nn.Conv2d(in_channels=self.Conv3_C, out_channels=self.Conv4_C, kernel_size=3, stride=2, padding=1),
+            nn.BatchNorm2d(self.Conv4_C),
+            nn.ReLU(inplace=True),
+
             nn.Flatten(),
-            nn.Linear(in_features=inFC_C, out_features=self.FC1_C),
-            nn.BatchNorm2d(self.FC1_C),
-            nn.ReLU(inplace=True),
-
-            nn.Linear(in_features=self.FC1_C, out_features=self.FC2_C),
-            nn.BatchNorm2d(self.FC2_C),
-            nn.ReLU(inplace=True),
-
-            nn.Linear(in_features=self.FC2_C, out_features=self.FC3_C),
-            nn.BatchNorm2d(self.FC3_C),
-            nn.ReLU(inplace=True),
-
-            nn.Linear(in_features=self.FC3_C, out_features=self.FC4_C)
+            nn.Linear(in_features=inFC_C, out_features=self.FC_C)
         )
 
     def forward(self, x):
@@ -37,35 +44,46 @@ class Encoder(nn.Module):
 
 # デコーダの構造
 class Decoder(nn.Module):
-    inFC_C = 16
-    FC1_C = 32
-    FC2_C = 64
-    FC3_C = 128
+    inFC_C = 64
+    inConv_C = 512
+    Conv1_C = 256
+    Conv2_C = 128
+    Conv3_C = 64
 
     def __init__(self, width, height, channel):
-        FC4_C = width * height * channel
+        self.W = width // (2**4)
+        self.H = height // (2**4)
+        outFC_C = self.W * self.H * self.Conv1_C
 
         super().__init__()
         
-        self.main = nn.Sequential(
-            nn.Linear(in_features=self.inFC_C, out_features=self.FC1_C),
-            nn.BatchNorm2d(self.FC1_C),
+        self.fc = nn.Sequential(
+            nn.Flatten(),
+            nn.Linear(in_features=self.inFC_C, out_features=outFC_C),
+            nn.ReLU(inplace=True)
+        )
+
+        self.conv = nn.Sequential(
+            nn.ConvTranspose2d(in_channels=self.inConv_C, out_channels=self.Conv1_C, kernel_size=4, stride=2, padding=1),
+            nn.BatchNorm2d(self.Conv1_C),
             nn.ReLU(inplace=True),
 
-            nn.Linear(in_features=self.FC1_C, out_features=self.FC2_C),
-            nn.BatchNorm2d(self.FC2_C),
+            nn.ConvTranspose2d(in_channels=self.Conv1_C, out_channels=self.Conv2_C, kernel_size=4, stride=2, padding=1),
+            nn.BatchNorm2d(self.Conv2_C),
             nn.ReLU(inplace=True),
 
-            nn.Linear(in_features=self.FC2_C, out_features=self.FC3_C),
-            nn.BatchNorm2d(self.FC3_C),
+            nn.ConvTranspose2d(in_channels=self.Conv2_C, out_channels=self.Conv3_C, kernel_size=4, stride=2, padding=1),
+            nn.BatchNorm2d(self.Conv3_C),
             nn.ReLU(inplace=True),
 
-            nn.Linear(in_features=self.FC3_C, out_features=FC4_C),
+            nn.ConvTranspose2d(in_channels=self.Conv3_C, out_channels=channel, kernel_size=4, stride=2, padding=1),
             nn.Tanh()
         )
 
     def forward(self, x):
-        return self.main(x)
+        x = self.fc(x)
+        x = x.view(x.shape[0], self.inConv_C, self.H, self.W)
+        return self.conv(x)
 
 
 # オートエンコーダの構造
