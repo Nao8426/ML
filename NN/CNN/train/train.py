@@ -17,10 +17,10 @@ from util import evaluate, plot, output_env
 # ロスの計算
 class MyLoss():
     def __init__(self):
-        self.CEL_loss = nn.CrossEntropyLoss()
+        self.CE_loss = nn.CrossEntropyLoss()
 
     def loss(self, x, y):
-        return self.CEL_loss(x, y)
+        return self.CE_loss(x, y)
 
 
 # 学習用関数
