@@ -25,7 +25,7 @@ class MyLoss():
 
 # 学習用関数
 def train(savedir, train_list, test_list, root, epochs, batch_size):
-    # 入力画像のチャンネル数
+    # 入力画像の情報
     width = 28
     height = 28
     channel = 1
