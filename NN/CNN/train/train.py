@@ -115,7 +115,7 @@ def train(savedir, train_list, test_list, root, epochs, batch_size):
             plot(result, x, savedir)
 
         # 各エポック終わりに，テストデータに対する精度を計算．
-        evaluate(model, test_loader, batch_size, channel)
+        evaluate(model, test_loader)
 
     # 最後のエポックが保存周期でない場合に，保存．
     if epoch+1 == epochs and (epoch+1)%10 != 0:
