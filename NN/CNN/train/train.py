@@ -26,6 +26,8 @@ class MyLoss():
 # 学習用関数
 def train(savedir, train_list, test_list, root, epochs, batch_size):
     # 入力画像のチャンネル数
+    width = 28
+    height = 28
     channel = 1
 
     # Adam設定(default: lr=0.001, betas=(0.9, 0.999), weight_decay=0) 
@@ -51,11 +53,6 @@ def train(savedir, train_list, test_list, root, epochs, batch_size):
     # トレーニングデータとテストデータのリストを読み込み
     df_train = pd.read_csv(train_list)
     df_test = pd.read_csv(test_list)
-
-    img_id = df_train['Path'].values.tolist()
-    check_img = Image.open('{}/{}'.format(root, img_id[0]))
-    check_img = check_img.convert('L')
-    width, height = check_img.size
 
     # モデルの読み込み
     model = CNN(width, height, channel)
