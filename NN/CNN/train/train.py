@@ -69,7 +69,7 @@ def train(savedir, train_list, test_list, root, epochs, batch_size):
     train_dataset = LoadDataset(df_train, root, transform=Trans())
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True, drop_last=True)
     test_dataset = LoadDataset(df_test, root, transform=Trans())
-    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=True, drop_last=True)
+    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=1, shuffle=False, drop_last=False)
 
     # パラメータ設定，ネットワーク構造などの環境をテキストファイルで保存．
     output_env('{}/env.txt'.format(savedir), batch_size, opt_para, model)
