@@ -23,7 +23,6 @@ class CNN(nn.Module):
 
             nn.Flatten(),
             nn.Linear(in_features=inFC_C, out_features=self.FC1_C),
-            nn.BatchNorm1d(self.FC1_C),
             nn.ReLU(inplace=True),
 
             nn.Linear(in_features=self.FC1_C, out_features=self.FC2_C),
