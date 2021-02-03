@@ -5,7 +5,7 @@ import torch
 
 
 # テストデータに対する精度を計算
-def evaluate(model, test_loader, batch_size):
+def evaluate(model, test_loader, batch_size, channel):
     device = 'cuda'
 
     model.eval()    # 推論モードへ切り替え（Dropoutなどの挙動に影響）
@@ -17,7 +17,7 @@ def evaluate(model, test_loader, batch_size):
         for img, label in test_loader:
             # 3次元テンソルを4次元テンソルに変換（1チャネルの情報を追加）
             batch, height, width = img.shape
-            img = torch.reshape(img, (batch_size, 1, height, width))
+            img = torch.reshape(img, (batch_size, channel, height, width))
 
             img = img.to(device)
 
